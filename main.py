@@ -5,7 +5,9 @@ from arp_poisoning import arp_poisoning_loop
 
 
 def sniffer_loop():
-    pass
+    capture = pyshark.LiveCapture(interface='eth0')
+    capture.sniff(timeout=50)
+
 
 
 def start_sniffer(interface_to_capture_packets, mac_address="", ip_address="", verbosity=0):
