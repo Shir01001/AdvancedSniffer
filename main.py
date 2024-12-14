@@ -1,18 +1,13 @@
 import argparse
 import pyshark
 
-from arp_poisoning import arp_poisoning_loop
+from packet_analysis import start_sniffer
+from arp_poisoning import start_arp_poisoning
 
 
-def sniffer_loop():
-    capture = pyshark.LiveCapture(interface='eth0')
-    capture.sniff(timeout=50)
-
-
-
-def start_sniffer(interface_to_capture_packets, mac_address="", ip_address="", verbosity=0):
-    arp_poisoning_loop()
-    sniffer_loop()
+def initialize_program():
+    start_arp_poisoning()
+    start_sniffer(args.interface, args.mac_address, args.address, args.verbosity)
 
 
 if __name__ == "__main__":
@@ -23,6 +18,10 @@ if __name__ == "__main__":
     parser.add_argument('-v', '--verbosity')
     args = parser.parse_args()
 
-    start_sniffer(args.interface, args.mac_address, args.address, args.verbosity)
-
-    print("something")
+    while True:
+        command = input("#>")
+        match command:
+            case "exit":
+                break
+            case _:
+                print("Not correct command")
