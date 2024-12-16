@@ -9,6 +9,7 @@ Run as administrator:
 ```python3 main.py --interface wlan0```
 
 # Sources
+http server basic templates
 Representation of arp attack:
 https://www.geeksforgeeks.org/what-is-arp-spoofing-arp-poisoning-attack/
 Representation of dns hijacking https://www.riskcrew.com/wp-content/uploads/2021/01/DNS-Hyjacking.jpg
