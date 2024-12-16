@@ -3,11 +3,13 @@ import pyshark
 
 from packet_analysis import start_sniffer
 from arp_poisoning import start_arp_poisoning
+from http_server import http_server_start
 
 
 def initialize_program():
     # start_arp_poisoning()
     start_sniffer("enp3s0", args.mac_address, args.address, args.verbosity)
+    http_server_start()
 
 
 if __name__ == "__main__":
