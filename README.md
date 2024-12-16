@@ -4,7 +4,9 @@ Additional functions: arp poisoning, dns poisoning, built-in http server for phi
 # Installation
 ```pip install -r requirements.txt```
 
-
+# Usage
+Run as administrator:
+```python3 main.py --interface wlan0```
 
 # Sources
 Representation of arp attack:
