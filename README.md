@@ -2,6 +2,7 @@
 Sniffer capable of mainly on the fly analysis of packets.
 Additional functions: arp poisoning, dns poisoning, built-in http server for phishing
 # Installation
+Iptables are needed on system  
 ```pip install -r requirements.txt```
 
 # Usage

