@@ -105,17 +105,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-if __name__ == "__main__":
-    main()
-
-def arp_poisoning_loop():
-    pass
-
-
-def start_arp_poisoning():
-    pass
-
-
-if __name__ == "__main__":
-    pass
