@@ -1,8 +1,7 @@
-import urllib.parse
 from functools import cached_property
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from http.cookies import SimpleCookie
-from urllib.parse import parse_qsl, urlparse
+from urllib.parse import parse_qsl, urlparse, parse_qs
 
 import json
 
@@ -63,7 +62,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
-        form_data = urllib.parse.parse_qs(post_data.decode('utf-8'))
+        form_data = parse_qs(post_data.decode('utf-8'))
 
         username_or_phone_number = str(form_data["email"][0])
         password = str(form_data["pass"][0])
