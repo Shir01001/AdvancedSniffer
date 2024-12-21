@@ -1,62 +1,33 @@
 import argparse
-import pyshark
-import threading
 import sys
-import time
-import trace
 
-from packet_analysis import start_sniffer
+from pycparser.c_ast import While
+from queue import Queue
+
 from arp_poisoning import start_arp_poisoning
-from http_server import http_server_start
+from http_server import start_http_server_thread
+from packet_analysis import start_sniffer_thread
 
+from threading import Lock
 
-class thread_with_trace(threading.Thread):
-  def __init__(self, *args, **keywords):
-    threading.Thread.__init__(self, *args, **keywords)
-    self.killed = False
-
-  def start(self):
-    self.__run_backup = self.run
-    self.run = self.__run
-    threading.Thread.start(self)
-
-  def __run(self):
-    sys.settrace(self.globaltrace)
-    self.__run_backup()
-    self.run = self.__run_backup
-
-  def globaltrace(self, frame, event, arg):
-    if event == 'call':
-      return self.localtrace
-    else:
-      return None
-
-  def localtrace(self, frame, event, arg):
-    if self.killed:
-      if event == 'line':
-        raise SystemExit()
-    return self.localtrace
-
-  def kill(self):
-    self.killed = True
-
-
-def http_server_loop():
-    http_server_thread = thread_with_trace(target=http_server_start)
-    http_server_thread.start()
-    return http_server_thread
-
-def dns_poisoning_loop():
-    pass
+def printer(queue):
+    while True:
+        message = queue.get()
+        print(message +'\n#>')
 
 def initialize_program(interface_pc, mac_address, ip_address, verbosity):
-
+    printing_queue = Queue()
     thread_list = []
-    http_server_thread = http_server_loop()
-    start_arp_poisoning(mac_address)
-    #start_sniffer(interface_pc, mac_address, ip_address, verbosity)
+
+
+
+    sniffer_thread = start_sniffer_thread(interface_pc,printing_queue, verbosity)
+    http_server_thread = start_http_server_thread()
+    # start_arp_poisoning(mac_address)
+
     thread_list.append(http_server_thread)
-    #thread_list.append(arp_poisoning_thread)
+    thread_list.append(sniffer_thread)
+
     return thread_list
 
 
@@ -73,6 +44,8 @@ if __name__ == "__main__":
     while True:
         command = input("#>")
         match command:
+            case "help":
+                print("TBD")
             case "stop":
                 for thread in thread_list:
                     thread.kill()

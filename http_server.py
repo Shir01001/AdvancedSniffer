@@ -5,6 +5,8 @@ from urllib.parse import parse_qsl, urlparse, parse_qs
 
 import json
 
+from thread_with_trace_class import thread_with_trace
+
 
 class WebRequestHandler(BaseHTTPRequestHandler):
     @cached_property
@@ -92,5 +94,13 @@ def http_server_start():
     server_instance.serve_forever()
 
 
+def start_http_server_thread(printing_queue):
+    http_server_thread = thread_with_trace(target=http_server_start)
+    http_server_thread.start()
+    return http_server_thread
+
+
 if __name__ == "__main__":
     http_server_start()
+
+
