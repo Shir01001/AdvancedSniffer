@@ -1,7 +1,8 @@
 import scapy.all as scapy
 import psutil
 import ipaddress
-
+def start_arp_poisoning():
+    pass
 
 def get_local_network():
     """Automatycznie pobiera zakres sieci lokalnej na podstawie aktywnego interfejsu"""
