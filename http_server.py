@@ -40,7 +40,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'404 - Not Found')
 
         try:
-            file_to_open = open('assets/web_server_files/' + self.path[1:]).read()
+            file_to_open = open('assets/web_server_files/' + self.path[1:], encoding="utf-8").read()
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
