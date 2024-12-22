@@ -96,7 +96,6 @@ def main():
             print("Default settings restored. Exiting.")
     except Exception as e:
         print(f"[ERROR] {e}")
-
 if __name__ == "__main__":
     main()
 
