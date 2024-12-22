@@ -1,5 +1,6 @@
 import sys
 import threading
+import socket
 
 class thread_with_trace(threading.Thread):
   def __init__(self, *args, **keywords):
@@ -30,3 +31,10 @@ class thread_with_trace(threading.Thread):
 
   def kill(self):
     self.killed = True
+
+def get_local_ip():
+  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+  s.connect(("8.8.8.8", 80))
+  result = s.getsockname()[0]
+  s.close()
+  return result

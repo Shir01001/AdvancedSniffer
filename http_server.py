@@ -5,7 +5,7 @@ from urllib.parse import parse_qsl, urlparse, parse_qs
 
 import json
 
-from thread_with_trace_class import thread_with_trace
+from utils import thread_with_trace
 
 
 class WebRequestHandler(BaseHTTPRequestHandler):
