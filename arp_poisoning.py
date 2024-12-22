@@ -2,8 +2,6 @@ import scapy.all as scapy
 import psutil
 import ipaddress
 
-def start_arp_poisoning():
-    pass
 
 def get_local_network():
     """Automatically retrieves the local network range based on the active interface"""
@@ -61,16 +59,19 @@ def display_menu(devices):
 
     choice = int(input("\nSelect a device (number): "))
     if choice == 0:
-        exit(0)
+        return
     elif 1 <= choice <= len(devices):
         return devices[choice - 1]
     else:
         print("Invalid choice. Please try again.")
         return display_menu(devices)
 
-def main():
+
+
+def start_arp_poisoning(mac_address):
     try:
-        # Automatically detect the network range
+        # Automatyczne wykrywanie zakresu sieci
+        target_device = None
         network_range = get_local_network()
         devices = scan(network_range)
 
@@ -79,7 +80,15 @@ def main():
             exit(0)
 
         # Display menu and select a target device
-        target_device = display_menu(devices)
+         if mac_address is None:
+            target_device = display_menu(devices)
+        else:
+            for device in enumerate(devices):
+                if device['mac'] == mac_address:
+                    target_device = device
+
+        if target_device is None:
+            return
 
         # Enter the router's IP (default gateway)
         router_ip = input("Enter the router's IP: ")
@@ -96,6 +105,7 @@ def main():
             print("Default settings restored. Exiting.")
     except Exception as e:
         print(f"[ERROR] {e}")
+
 if __name__ == "__main__":
-    main()
+    start_arp_poisoning("")
 
