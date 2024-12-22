@@ -2,6 +2,16 @@ import pyshark
 import threading
 
 from scapy.all import *
+from scapy.layers.http import HTTPRequest
+
+from colorama import init, Fore
+
+init()
+GREEN = Fore.GREEN
+RED   = Fore.RED
+RESET = Fore.RESET
+
+
 
 def sniffer_loop(interface_to_capture_packets,printing_queue, verbosity):
     if verbosity:
@@ -25,24 +35,22 @@ def http_packet_filter(packet):
     return True
 
 def process_packet(local_packet):
-    print("\n--- HTTP Packet Captured ---")
-    # Print basic packet information
-    # print(f"Source IP: {packet[IP].src}")
-    # print(f"Destination IP: {packet[IP].dst}")
-    # print(f"Source Port: {packet[TCP].sport}")
-    # print(f"Destination Port: {packet[TCP].dport}")
-    # Print HTTP payload
-    if local_packet.haslayer(Raw):
-        http_payload = local_packet[Raw].load
-        try:
-            print("HTTP Data:")
-            print(http_payload.decode(errors='ignore'))  # Decode HTTP payload
-        except UnicodeDecodeError:
-            print("Could not decode HTTP payload.")
+    print(local_packet)
+    if local_packet.haslayer(HTTPRequest):
+        url = local_packet[HTTPRequest].Host.decode() + local_packet[HTTPRequest].Path.Decode()
+        ip = local_packet[IP].src
+        method = local_packet[HTTPRequest].Method.decode()
+        print(f"\n{GREEN}[+] {ip} Requested {url} with {method}{RESET}")
+        if 1 and local_packet.haslayer(Raw) and method == "POST":
+            # if show_raw flag is enabled, has raw data, and the requested method is "POST"
+            # then show raw
+            print(f"\n{RED}[*] Some useful Raw data: {local_packet[Raw].load}{RESET}")
 
 
 def sniffer_loop_scapy(interface_to_capture_packets, verbosity):
-    sniff(iface=interface_to_capture_packets,filter="tcp port 80", prn=lambda x:x.summary(), store=False)
+    print("[+] Starting")
+    # sniff(iface=interface_to_capture_packets, prn=process_packet, filter="port 80", store=False)
+    sniff(prn=process_packet, filter="port 80", store=False)
 
 
 def start_sniffer_thread(interface_to_capture_packets,printing_queue, verbosity=0, ):
