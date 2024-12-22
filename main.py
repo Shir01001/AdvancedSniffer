@@ -1,5 +1,6 @@
 import argparse
 import sys
+import time
 
 from pycparser.c_ast import While
 from queue import Queue
@@ -10,19 +11,31 @@ from packet_analysis import start_sniffer_thread
 
 from threading import Lock, Thread
 
+from colorama import init, Fore
+
+from utils import thread_with_trace
+
+init()
+GREEN = Fore.GREEN
+RED   = Fore.RED
+RESET = Fore.RESET
 
 def printer(queue):
+    print(f"{GREEN}[+] Printing thread started{RESET}")
     while True:
         message = queue.get()
-        print(message +'\n#>')
+        if message[:3] == "[*]":
+            print(message +'\n#>')
+        else:
+            print(message)
 
 def initialize_program(interface_pc, mac_address, ip_address, verbosity, local_printing_queue):
     original_thread_list = []
-    original_printer_thread = Thread(target=printer, args=(local_printing_queue,), daemon=True,name="Printer")
-    printer_thread.start()
+    original_printer_thread = thread_with_trace(target=printer, args=(local_printing_queue,), daemon=True,name="Printer")
+    original_printer_thread.start()
 
     sniffer_thread = start_sniffer_thread(interface_pc,local_printing_queue, verbosity)
-    http_server_thread = start_http_server_thread(local_printing_queue)
+    http_server_thread = start_http_server_thread(local_printing_queue,verbosity)
     # start_arp_poisoning(mac_address)
 
     original_thread_list.append(http_server_thread)
@@ -43,6 +56,7 @@ if __name__ == "__main__":
     printing_queue = Queue()
 
     thread_list, printer_thread = initialize_program(args.interface, args.mac_address, args.address, args.verbosity, printing_queue)
+    time.sleep(1)
     while True:
         command = input("#>")
         match command:
@@ -57,8 +71,9 @@ if __name__ == "__main__":
                 for thread in thread_list:
                     thread.kill()
                     thread.join()
+                printer_thread.kill()
                 printer_thread.join()
                 print("Everything stopped")
                 break
             case _:
-                print("Not correct command")
+                printing_queue.put(f"{RED}[-]Not correct command{RESET}")

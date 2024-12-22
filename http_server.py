@@ -7,6 +7,13 @@ import json
 
 from utils import thread_with_trace
 
+from colorama import init, Fore
+
+init()
+GREEN = Fore.GREEN
+RED = Fore.RED
+RESET = Fore.RESET
+
 
 class WebRequestHandler(BaseHTTPRequestHandler):
     @cached_property
@@ -89,18 +96,17 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         )
 
 
-def http_server_start():
+def http_server_start(printing_queue, verbosity):
+    printing_queue.put(f"\n{GREEN}[+] HTTP server started{RESET}")
     server_instance = HTTPServer(('', 80), WebRequestHandler)
     server_instance.serve_forever()
 
 
-def start_http_server_thread(printing_queue):
-    http_server_thread = thread_with_trace(target=http_server_start)
+def start_http_server_thread(printing_queue, verbosity):
+    http_server_thread = thread_with_trace(target=http_server_start, args=(printing_queue,verbosity))
     http_server_thread.start()
     return http_server_thread
 
 
-if __name__ == "__main__":
-    http_server_start()
-
-
+# if __name__ == "__main__":
+#     http_server_start()
