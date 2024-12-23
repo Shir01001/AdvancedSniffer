@@ -80,7 +80,7 @@ def start_arp_poisoning(mac_address):
             exit(0)
 
         # Display menu and select a target device
-         if mac_address is None:
+        if mac_address is None:
             target_device = display_menu(devices)
         else:
             for device in enumerate(devices):

