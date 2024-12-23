@@ -27,7 +27,7 @@ def process_packet(local_packet, printing_queue):
 
 def sniffer_loop_scapy(interface_to_capture_packets, printing_queue, verbosity):
     printing_queue.put(f"{GREEN}[+] Starting sniffer{RESET}")
-    sniff(iface=interface_to_capture_packets, prn=lambda x:process_packet(x,printing_queue), filter="port 80", store=False)
+    sniff(iface=interface_to_capture_packets, prn=lambda x:process_packet(x,printing_queue), store=False)
     # sniff(prn=process_packet, filter="port 80", store=False)
 
 

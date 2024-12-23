@@ -38,3 +38,6 @@ def get_local_ip():
   result = s.getsockname()[0]
   s.close()
   return result
+
+if __name__ == "__main__":
+  print(get_local_ip())
