@@ -35,12 +35,12 @@ def initialize_program(interface_pc, mac_address, verbosity, local_printing_queu
     original_printer_thread = thread_with_trace(target=printer, args=(local_printing_queue,), daemon=True,name="Printer")
     original_printer_thread.start()
 
-    sniffer_thread = start_sniffer_thread(interface_pc,local_printing_queue, verbosity)
+    sniffer_thread_token = start_sniffer_thread(interface_pc,local_printing_queue, verbosity)
     http_server_thread = start_http_server_thread(local_printing_queue,verbosity)
     start_arp_poisoning(mac_address)
 
     original_thread_list.append(http_server_thread)
-    original_thread_list.append(sniffer_thread)
+    original_thread_list.append(sniffer_thread_token)
 
     return original_thread_list,original_printer_thread
 

