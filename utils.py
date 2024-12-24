@@ -42,12 +42,12 @@ class thread_with_trace(threading.Thread):
         self.killed = True
 
 
-def run_configuration_commands():
+def run_configuration_commands(router_ip):
     commands = [
         'iptables -F',
         'iptables --policy FORWARD ACCEPT',
         'sysctl -w net.ipv4.ip_forward=1',
-        # 'xterm -e mitmdump'
+        # f"xterm -e mitmdump --listen-host {get_local_ip()} --listen-port 8080 --flow-detail 4 '~bq pass'"
     ]
 
     print("[+] Configuring machine as a router")

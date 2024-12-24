@@ -35,11 +35,12 @@ def initialize_program(interface_pc, mac_address, ip_address, verbosity, local_p
 
     original_tokens_list = []
 
-    run_configuration_commands()
-
-    # getting targeted device and ip of real router
-    targeted_device = get_target_to_attack(mac_address, ip_address)
     router_ip = get_router_ip()
+    run_configuration_commands(router_ip)
+
+    # getting targeted device
+    targeted_device = get_target_to_attack(mac_address, ip_address)
+
     
     # starting thread for printing everything
     original_printer_thread = thread_with_trace(target=printer, args=(local_printing_queue,), daemon=True,
