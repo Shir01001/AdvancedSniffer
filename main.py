@@ -12,7 +12,7 @@ from packet_analysis import start_sniffer_thread
 from colorama import init, Fore
 
 from input_data import get_target_to_attack, get_router_ip
-from utils import thread_with_trace, run_configuration_commands
+from utils import thread_with_trace, run_configuration_commands, run_restoring_commands
 
 init()
 GREEN = Fore.GREEN
@@ -90,6 +90,7 @@ if __name__ == "__main__":
             case "exit":
                 for token in tokens_list:
                     token.set()
+                run_restoring_commands()
                 printer_thread.kill()
                 printer_thread.join()
                 print("Everything stopped")

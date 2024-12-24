@@ -44,6 +44,8 @@ class thread_with_trace(threading.Thread):
 
 def run_configuration_commands():
     commands = [
+        'iptables -F',
+        'iptables --policy FORWARD ACCEPT',
         'sysctl -w net.ipv4.ip_forward=1'
     ]
 
@@ -58,6 +60,7 @@ def run_configuration_commands():
 def run_restoring_commands():
     commands = [
         'sysctl -w net.ipv4.ip_forward=0'
+        'iptables -F'
     ]
 
     print("[+] Restoring machine configuration")
