@@ -29,28 +29,32 @@ def process_http_packet(local_packet, printing_queue):
         printing_queue.put(f"\n{RED}[*] Some useful Raw data: {local_packet[Raw].load}{RESET}")
 
 
-def packet_handler(packet_to_process, target, printing_queue):
-    # print(packet_to_process)
+def packet_handler(packet_to_process, target, router_ip, printing_queue):
+
     if packet_to_process.haslayer(HTTPRequest):
+        print(packet_to_process)
         process_http_packet(packet_to_process, printing_queue)
 
     if packet_to_process.haslayer(DNS) and packet_to_process[DNS].qr == 0:
-        process_dns_packet(packet_to_process, target)
+        print(packet_to_process)
+        process_dns_packet(packet_to_process, target,router_ip)
 
 
-def sniffer_loop_scapy(interface_to_capture_packets, target, printing_queue, verbosity, cancel_token):
+def sniffer_loop_scapy(interface_to_capture_packets, target, router_ip, printing_queue, verbosity, cancel_token):
     printing_queue.put(f"{GREEN}[+] Starting sniffer{RESET}")
     while not cancel_token.is_set():
         sniff(iface=interface_to_capture_packets,
-              prn=lambda packet_to_process: packet_handler(packet_to_process, target, printing_queue), store=0, count=1)
+              prn=lambda packet_to_process: packet_handler(packet_to_process, target, router_ip, printing_queue),
+              store=0, count=1)
     # sniff(prn=process_packet, filter="port 80", store=False)
 
 
-def start_sniffer_thread(interface_to_capture_packets, target, printing_queue, verbosity=0):
+def start_sniffer_thread(interface_to_capture_packets, target, router_ip, printing_queue, verbosity=0):
     cancel_token = threading.Event()
     sniffer_thread = threading.Thread(target=sniffer_loop_scapy,
                                       args=(
-                                      interface_to_capture_packets, target, printing_queue, verbosity, cancel_token))
+                                          interface_to_capture_packets, target, router_ip, printing_queue, verbosity,
+                                          cancel_token))
     sniffer_thread.start()
     return cancel_token
 

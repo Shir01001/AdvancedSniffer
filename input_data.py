@@ -18,7 +18,7 @@ def display_menu(devices):
         return display_menu(devices)
 
 
-def get_targets_to_attack_and_router(mac_address=-1, ip_address=-1):
+def get_target_to_attack(mac_address=None, ip_address=None):
     try:
         target_device = None
         network_range = get_local_network()
@@ -28,19 +28,21 @@ def get_targets_to_attack_and_router(mac_address=-1, ip_address=-1):
             print("[-]No devices found on the network.")
             exit(1)
 
-
-        if mac_address is None:
+        if mac_address is None and ip_address is None:
             target_device = display_menu(devices)
         else:
             for device in enumerate(devices):
-                if device['mac'] == mac_address or device["ip"] == ip_address:
+                if device["mac"] == mac_address or device["ip"] == ip_address:
                     target_device = device
 
         if target_device is None:
             return
 
-        router_ip = input("Enter the router's IP: ")
-
-        return target_device, router_ip
+        return target_device
     except Exception as e:
         print(f"[-]Error {e}")
+
+
+def get_router_ip():
+    router_ip = input("Enter the router's IP: ")
+    return router_ip
