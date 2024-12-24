@@ -51,7 +51,7 @@ def initialize_program(interface_pc, mac_address, ip_address, verbosity, local_p
                                                 verbosity)
 
     http_server_thread = start_http_server_thread(local_printing_queue, verbosity)
-    arp_poisoning_token = start_arp_poisoning(targeted_device, router_ip, local_printing_queue, verbosity, )
+    arp_poisoning_token = start_arp_poisoning(interface_pc ,targeted_device, router_ip, local_printing_queue, verbosity)
 
     # creating list with cancellation tokens
     original_tokens_list.append(sniffer_thread_token)

@@ -102,10 +102,15 @@ def http_server_start(printing_queue, verbosity):
     server_instance.serve_forever()
 
 
+def http_wpad_giver_server_start():
+    pass
+
 def start_http_server_thread(printing_queue, verbosity):
     http_server_thread = thread_with_trace(target=http_server_start, args=(printing_queue,verbosity))
     http_server_thread.start()
     return http_server_thread
+
+
 
 
 # if __name__ == "__main__":

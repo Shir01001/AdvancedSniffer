@@ -32,11 +32,11 @@ def process_http_packet(local_packet, printing_queue):
 def packet_handler(packet_to_process, target, router_ip, printing_queue):
 
     if packet_to_process.haslayer(HTTPRequest):
-        print(packet_to_process)
+        # print(packet_to_process)
         process_http_packet(packet_to_process, printing_queue)
 
     if packet_to_process.haslayer(DNS) and packet_to_process[DNS].qr == 0:
-        print(packet_to_process)
+        # print(packet_to_process)
         process_dns_packet(packet_to_process, target,router_ip)
 
 

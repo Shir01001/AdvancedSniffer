@@ -46,7 +46,8 @@ def run_configuration_commands():
     commands = [
         'iptables -F',
         'iptables --policy FORWARD ACCEPT',
-        'sysctl -w net.ipv4.ip_forward=1'
+        'sysctl -w net.ipv4.ip_forward=1',
+        # 'xterm -e mitmdump'
     ]
 
     print("[+] Configuring machine as a router")
@@ -69,7 +70,6 @@ def run_restoring_commands():
         if command.returncode != 0:
             print(f"{RED}[-] Error in executing: {command_to_run}{RESET}")
             sys.exit(1)
-
 
 if __name__ == "__main__":
     print(get_local_ip())
