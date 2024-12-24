@@ -11,6 +11,7 @@ from packet_analysis import start_sniffer_thread
 
 from colorama import init, Fore
 
+from input_data import get_targets_to_attack
 from utils import thread_with_trace, run_configuration_commands
 
 init()
@@ -35,7 +36,9 @@ def initialize_program(interface_pc, mac_address, verbosity, local_printing_queu
     original_printer_thread = thread_with_trace(target=printer, args=(local_printing_queue,), daemon=True,name="Printer")
     original_printer_thread.start()
 
-    sniffer_thread_token = start_sniffer_thread(interface_pc,local_printing_queue, verbosity)
+    targets = get_targets_to_attack()
+
+    sniffer_thread_token = start_sniffer_thread(interface_pc,local_printing_queue, targets, verbosity)
     http_server_thread = start_http_server_thread(local_printing_queue,verbosity)
     start_arp_poisoning(mac_address)
 
