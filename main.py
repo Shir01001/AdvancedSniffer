@@ -11,7 +11,7 @@ from packet_analysis import start_sniffer_thread
 
 from colorama import init, Fore
 
-from input_data import get_targets_to_attack
+from input_data import get_targets_to_attack_and_router
 from utils import thread_with_trace, run_configuration_commands
 
 init()
@@ -28,24 +28,32 @@ def printer(queue):
         else:
             print(message)
 
-def initialize_program(interface_pc, mac_address, verbosity, local_printing_queue):
-    original_thread_list = []
+def initialize_program(interface_pc, mac_address, ip_address, verbosity, local_printing_queue):
+    original_tokens_list = []
 
     run_configuration_commands()
 
+    #getting targeted device and ip of real router
+    targeted_device, router_ip = get_targets_to_attack_and_router(mac_address, ip_address)
+
+    #starting thread for printing everything
     original_printer_thread = thread_with_trace(target=printer, args=(local_printing_queue,), daemon=True,name="Printer")
     original_printer_thread.start()
 
-    targets = get_targets_to_attack()
 
-    sniffer_thread_token = start_sniffer_thread(interface_pc,local_printing_queue, targets, verbosity)
+    #starting core threads
+    sniffer_thread_token = start_sniffer_thread(interface_pc, targeted_device['ip'],local_printing_queue, verbosity)
+
     http_server_thread = start_http_server_thread(local_printing_queue,verbosity)
-    start_arp_poisoning(mac_address)
+    arp_poisoning_token = start_arp_poisoning(targeted_device, router_ip, local_printing_queue,verbosity, )
 
-    original_thread_list.append(http_server_thread)
-    original_thread_list.append(sniffer_thread_token)
+    #creating list with cancellation tokens
+    original_tokens_list.append(sniffer_thread_token)
+    # original_thread_list.append(http_server_thread)
+    original_tokens_list.append(arp_poisoning_token)
 
-    return original_thread_list,original_printer_thread
+
+    return original_tokens_list,original_printer_thread
 
 
 
@@ -53,8 +61,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--interface', default="wlan0")
     parser.add_argument('-m', '--mac_address')
-    #parser.add_argument('-a', "--address")
+    parser.add_argument('-a', "--address")
     parser.add_argument('-v', '--verbosity', default=0)
+    # parser.add_argument('-n', '--no-http')
     args = parser.parse_args()
 
     if os.getuid() != 0:
@@ -63,7 +72,7 @@ if __name__ == "__main__":
 
     printing_queue = Queue()
 
-    thread_list, printer_thread = initialize_program(args.interface, args.mac_address, args.verbosity, printing_queue)
+    tokens_list, printer_thread = initialize_program(args.interface, args.mac_address, args.address, args.verbosity, printing_queue)
     time.sleep(1)
     while True:
         command = input("#>")
@@ -71,14 +80,11 @@ if __name__ == "__main__":
             case "help":
                 print("TBD")
             case "stop":
-                for thread in thread_list:
-                    thread.kill()
-                    thread.join()
-
+                for token in tokens_list:
+                    token.set()
             case "exit":
-                for thread in thread_list:
-                    thread.kill()
-                    thread.join()
+                for token in tokens_list:
+                    token.set()
                 printer_thread.kill()
                 printer_thread.join()
                 print("Everything stopped")

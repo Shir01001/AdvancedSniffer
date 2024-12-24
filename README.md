@@ -16,6 +16,11 @@ Arguments:
 -a --address sets ip address of target for arp poisoning  
 -v --verbosity adds information to output for debug purposes
 
+# Core functionalities
+1. Arp poisoning
+2. Http server for phishing
+3. Sniffer for http requests
+4. Dns spoofing
 
 # Sources
 http server basic templates

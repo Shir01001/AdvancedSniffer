@@ -1,9 +1,10 @@
 import subprocess
 import sys
 import threading
-import socket
 
 from colorama import init, Fore
+
+from networking_functions import get_local_ip
 
 init()
 GREEN = Fore.GREEN
@@ -65,13 +66,6 @@ def run_restoring_commands():
         if command.returncode != 0:
             print(f"{RED}[-] Error in executing: {command_to_run}{RESET}")
             sys.exit(1)
-
-def get_local_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    result = s.getsockname()[0]
-    s.close()
-    return result
 
 
 if __name__ == "__main__":
