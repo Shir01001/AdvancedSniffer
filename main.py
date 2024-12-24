@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 import time
 
@@ -8,10 +9,9 @@ from arp_poisoning import start_arp_poisoning
 from http_server import start_http_server_thread
 from packet_analysis import start_sniffer_thread
 
-
 from colorama import init, Fore
 
-from utils import thread_with_trace
+from utils import thread_with_trace, run_configuration_commands
 
 init()
 GREEN = Fore.GREEN
@@ -29,6 +29,9 @@ def printer(queue):
 
 def initialize_program(interface_pc, mac_address, verbosity, local_printing_queue):
     original_thread_list = []
+
+    run_configuration_commands()
+
     original_printer_thread = thread_with_trace(target=printer, args=(local_printing_queue,), daemon=True,name="Printer")
     original_printer_thread.start()
 
@@ -50,6 +53,10 @@ if __name__ == "__main__":
     #parser.add_argument('-a', "--address")
     parser.add_argument('-v', '--verbosity', default=0)
     args = parser.parse_args()
+
+    if os.getuid() != 0:
+        print("[-] Run again with sudo privileges")
+        exit(1)
 
     printing_queue = Queue()
 
