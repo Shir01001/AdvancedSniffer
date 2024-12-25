@@ -5,7 +5,6 @@ from urllib.parse import parse_qsl, urlparse, parse_qs
 
 import json
 
-from dulwich.porcelain import print_tag
 
 from utils import thread_with_trace
 

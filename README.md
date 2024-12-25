@@ -16,6 +16,8 @@ Arguments:
 -a --address sets ip address of target for arp poisoning  
 -v --verbosity adds information to output for debug purposes
 
+mitmdump --listen-host local_ip --listen-port 8080 --flow-detail 4 '~bq pass'
+
 # Core functionalities
 1. Arp poisoning
 2. Http server for phishing

