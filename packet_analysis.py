@@ -5,14 +5,15 @@ from scapy.all import *
 from scapy.layers.http import HTTPRequest
 from scapy.layers.dns import DNSRR, DNS, IP, UDP
 
-from dns_poisoning import process_dns_packet
-from utils import thread_with_trace
+# from dns_poisoning import process_dns_packet
+# from utils import thread_with_trace
 
 from colorama import init, Fore
 
 init()
 GREEN = Fore.GREEN
 RED = Fore.RED
+BLUE = Fore.BLUE
 RESET = Fore.RESET
 
 
@@ -20,20 +21,22 @@ def return_password_from_packet():
     pass
 
 
-def process_http_packet(local_packet, printing_queue):
+def process_http_packet(local_packet, printing_queue, verbosity):
     url = local_packet[HTTPRequest].Host.decode() + local_packet[HTTPRequest].Path.decode()
     ip = local_packet[IP].src
     method = local_packet[HTTPRequest].Method.decode()
-    printing_queue.put(f"\n{GREEN}[+] {ip} Requested {url} with {method}{RESET}")
+    if verbosity > 1:
+        printing_queue.put(f"\n{GREEN}[+] {ip} Requested {url} with {method}{RESET}")
     if local_packet.haslayer(Raw) and method == "POST":
-        printing_queue.put(f"\n{RED}[*] Some useful Raw data: {local_packet[Raw].load}{RESET}")
+        if verbosity > 0:
+            printing_queue.put(f"\n{GREEN}[+] {ip} Requested {url} with {method}{RESET}")
+            printing_queue.put(f"\n{BLUE}[?] Some useful Raw data: {local_packet[Raw].load}{RESET}")
 
 
-def packet_handler(packet_to_process, target, router_ip, printing_queue):
-
+def packet_handler(packet_to_process, target, router_ip, printing_queue, verbosity):
     if packet_to_process.haslayer(HTTPRequest):
         # print(packet_to_process)
-        process_http_packet(packet_to_process, printing_queue)
+        process_http_packet(packet_to_process, printing_queue, verbosity)
 
     # if packet_to_process.haslayer(DNS) and packet_to_process[DNS].qr == 0:
     #     print(packet_to_process)
@@ -41,10 +44,11 @@ def packet_handler(packet_to_process, target, router_ip, printing_queue):
 
 
 def sniffer_loop_scapy(interface_to_capture_packets, target, router_ip, printing_queue, verbosity, cancel_token):
-    printing_queue.put(f"{GREEN}[+] Starting sniffer{RESET}")
+    if verbosity > 0:
+        printing_queue.put(f"{GREEN}[+] Starting sniffer{RESET}")
     while not cancel_token.is_set():
         sniff(iface=interface_to_capture_packets,
-              prn=lambda packet_to_process: packet_handler(packet_to_process, target, router_ip, printing_queue),
+              prn=lambda packet_to_process: packet_handler(packet_to_process, target, router_ip, printing_queue, verbosity),
               store=0, count=1)
     # sniff(prn=process_packet, filter="port 80", store=False)
 

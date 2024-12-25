@@ -49,7 +49,7 @@ def run_configuration_commands(router_ip):
         'sysctl -w net.ipv4.ip_forward=1'
     ]
 
-    print("[+] Configuring machine as a router")
+    print(f"{GREEN}[+] Configuring machine as a router{RESET}")
     for command_to_run in commands:
         command = run(command_to_run.split(), stdout=DEVNULL, stderr=DEVNULL)
         if command.returncode != 0:
@@ -64,7 +64,7 @@ def run_restoring_commands():
         'iptables -F'
     ]
 
-    print("[+] Restoring machine configuration")
+    print(f"{GREEN}[+] Restoring machine configuration{RESET}")
     for command_to_run in commands:
         command = run(command_to_run.split(), stdout=DEVNULL, stderr=DEVNULL)
         if command.returncode != 0:
