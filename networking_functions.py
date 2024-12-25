@@ -45,6 +45,6 @@ def get_mac(ip):
     """Returns the MAC address for a given IP"""
     request = scapy.ARP(pdst=ip)
     broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
-    packet = broadcast / request
-    answer = scapy.srp(packet, timeout=2, verbose=False)[0]
+    arp_request_broadcast = broadcast/request
+    answer = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]
     return answer[0][1].hwsrc

