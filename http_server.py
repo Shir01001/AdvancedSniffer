@@ -1,13 +1,16 @@
 from functools import cached_property
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHandler
 from http.cookies import SimpleCookie
 from urllib.parse import parse_qsl, urlparse, parse_qs
 
 import json
 
+
 from utils import thread_with_trace
 
 from colorama import init, Fore
+
+from scapy.all import conf
 
 init()
 GREEN = Fore.GREEN
@@ -102,11 +105,22 @@ def http_server_start(printing_queue, verbosity):
     server_instance.serve_forever()
 
 
-def start_http_server_thread(printing_queue, verbosity):
-    http_server_thread = thread_with_trace(target=http_server_start, args=(printing_queue,verbosity))
+def http_wpad_giver_server_start(interface, printing_queue, verbosity):
+    http_port = 80
+    local_ip = conf.ifaces[interface].ip
+
+    print("[+] Starting wpad giver server")
+    httpd = HTTPServer((local_ip, http_port), SimpleHTTPRequestHandler)
+    httpd.serve_forever()
+
+
+
+def start_http_server_thread(interface, printing_queue, verbosity):
+    # http_server_thread = thread_with_trace(target=http_server_start, args=(printing_queue, verbosity))
+
+    http_server_thread = thread_with_trace(target=http_wpad_giver_server_start, args=(interface, printing_queue, verbosity))
     http_server_thread.start()
     return http_server_thread
-
 
 # if __name__ == "__main__":
 #     http_server_start()

