@@ -28,7 +28,7 @@ def printer(queue, cancel_token):
     print(f"{GREEN}[+] Printing thread started{RESET}")
     while not cancel_token.is_set():
         message = queue.get()
-        if message[3:] == "[+]" or message[3:] == "[-]":
+        if message[:3] == "[+]" or message[:3] == "[-]":
             print('\n' + str(message) + '\n#>', end='')
         else:
             print(message)
