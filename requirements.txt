@@ -1,3 +1,4 @@
 pyshark
 argparse
 scapy
+colorama

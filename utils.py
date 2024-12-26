@@ -1,3 +1,4 @@
+import time
 from subprocess import run, DEVNULL
 import sys
 import threading
@@ -52,6 +53,7 @@ def run_configuration_commands(router_ip):
     print(f"{GREEN}[+] Configuring machine as a router{RESET}")
     for command_to_run in commands:
         command = run(command_to_run.split(), stdout=DEVNULL, stderr=DEVNULL)
+        time.sleep(1)
         if command.returncode != 0:
             print(f"{RED}[-] Error in executing: {command_to_run}{RESET}")
             sys.exit(1)

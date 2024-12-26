@@ -11,6 +11,7 @@ from arp_poisoning import start_arp_poisoning
 from http_server import start_http_server_thread
 from packet_analysis import start_sniffer_thread
 from dns_poisoning import start_dns_poisoning
+from mitm_proxy import start_mitm_proxy_thread
 
 from colorama import init, Fore
 
@@ -27,10 +28,10 @@ def printer(queue, cancel_token):
     print(f"{GREEN}[+] Printing thread started{RESET}")
     while not cancel_token.is_set():
         message = queue.get()
-        # if message[:3] == "[+]" or message[:3] == "[-]" or :
-        print('\n' + str(message) + '\n#>', end='')
-        # else:
-        #     print(message)
+        if message[3:] == "[+]" or message[3:] == "[-]":
+            print('\n' + str(message) + '\n#>', end='')
+        else:
+            print(message)
 
 
 def start_printer_thread(local_printing_queue):
@@ -66,14 +67,17 @@ def initialize_program(interface_pc, mac_address, ip_address, router_ip, verbosi
 
     dns_poisoning_token = start_dns_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
 
-    # http_server_thread = start_http_server_thread(interface_pc,local_printing_queue, verbosity)
+    http_server_token = start_http_server_thread(interface_pc,local_printing_queue, verbosity)
+    #
 
+    mitm_proxy_token = start_mitm_proxy_thread(local_printing_queue, verbosity)
     # creating list with cancellation tokens
     # original_tokens_list.append(sniffer_thread_token)
-    # original_thread_list.append(http_server_thread)
+    original_tokens_list.append(http_server_token)
     original_tokens_list.append(arp_poisoning_token)
     original_tokens_list.append(dns_poisoning_token)
     original_tokens_list.append(printing_thread_token)
+    original_tokens_list.append(mitm_proxy_token)
 
     return original_tokens_list
 
