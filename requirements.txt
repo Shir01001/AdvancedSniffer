@@ -2,3 +2,5 @@ pyshark
 argparse
 scapy
 colorama
+customtkinter
+darkdetect

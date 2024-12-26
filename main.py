@@ -17,6 +17,8 @@ from colorama import init, Fore
 
 from input_data import get_target_to_attack, get_router_ip
 from utils import run_configuration_commands, run_restoring_commands
+from modern_gui import start_gui
+
 
 init()
 GREEN = Fore.GREEN
@@ -89,6 +91,7 @@ if __name__ == "__main__":
     parser.add_argument('-t', "--target_ip")
     parser.add_argument('-r', '--router_ip')
     parser.add_argument('-v', '--verbosity', default=1)
+    parser.add_argument('-g', '--gui', default=0)
     # parser.add_argument('-n', '--no-http')
     args = parser.parse_args()
 
@@ -102,21 +105,24 @@ if __name__ == "__main__":
                                      int(args.verbosity),
                                      printing_queue)
     time.sleep(1)
-    while True:
-        command = input()
-        match command:
-            case "help":
-                printing_queue.put('''
-                this is help''')
-            case "stop":
-                for token in tokens_list:
-                    token.set()
-            case "exit":
-                for token in tokens_list:
-                    token.set()
-                time.sleep(5)
-                run_restoring_commands()
-                print(f"{GREEN}==============Everything stopped=============={RESET}")
-                sys.exit(0)
-            case _:
-                printing_queue.put(f"{RED}[-]Not correct command{RESET}")
+    if int(args.gui):
+        start_gui()
+    else:
+        while True:
+            command = input()
+            match command:
+                case "help":
+                    printing_queue.put('''
+                    this is help''')
+                case "stop":
+                    for token in tokens_list:
+                        token.set()
+                case "exit":
+                    for token in tokens_list:
+                        token.set()
+                    time.sleep(5)
+                    run_restoring_commands()
+                    print(f"{GREEN}==============Everything stopped=============={RESET}")
+                    sys.exit(0)
+                case _:
+                    printing_queue.put(f"{RED}[-]Not correct command{RESET}")
