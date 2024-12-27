@@ -19,7 +19,6 @@ from input_data import get_target_to_attack, get_router_ip
 from utils import run_configuration_commands, run_restoring_commands
 from modern_gui import start_gui
 
-
 init()
 GREEN = Fore.GREEN
 RED = Fore.RED
@@ -69,7 +68,7 @@ def initialize_program(interface_pc, mac_address, ip_address, router_ip, verbosi
 
     dns_poisoning_token = start_dns_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
 
-    http_server_token = start_http_server_thread(interface_pc,local_printing_queue, verbosity)
+    http_server_token = start_http_server_thread(interface_pc, local_printing_queue, verbosity)
     #
 
     mitm_proxy_token = start_mitm_proxy_thread(local_printing_queue, verbosity)
@@ -101,13 +100,13 @@ if __name__ == "__main__":
 
     printing_queue = Queue()
 
-    tokens_list = initialize_program(args.interface, args.mac_address, args.target_ip, args.router_ip,
-                                     int(args.verbosity),
-                                     printing_queue)
     time.sleep(1)
     if int(args.gui):
         start_gui()
     else:
+        tokens_list = initialize_program(args.interface, args.mac_address, args.target_ip, args.router_ip,
+                                         int(args.verbosity),
+                                         printing_queue)
         while True:
             command = input()
             match command:
