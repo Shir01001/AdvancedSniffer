@@ -1,18 +1,17 @@
-from tkinter import *
-import customtkinter
+import tkinter as tk
+from tkinter import ttk
 
-
-customtkinter.set_appearance_mode("dark")
-customtkinter.set_default_color_theme("green")
 
 
 def start_gui():
-    root = customtkinter.CTk()
+    root = tk.Tk()
+
+    root.tk.call('source', './assets/gui_theme/forest-dark.tcl')
+    ttk.Style().theme_use('forest-dark')
+
     root.title('Advanced Sniffer')
-    # root.iconbitmap('')
+    root.iconbitmap('')
     root.geometry('600x350')
 
-    starting_button = customtkinter.CTkButton(root, text="Starting")
-    starting_button.pack(pady=80)
 
     root.mainloop()

@@ -48,8 +48,13 @@ def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue
                 printing_queue.put(f'{RED}[?]IP seems down, retrying... {RESET}')
             time.sleep(1)
             continue
+        except IndexError:
+            if verbosity > 0:
+                printing_queue.put(f'{RED}[?] Probably not resolving mac address{RESET}')
         except Exception as e:
-            printing_queue.put(f"{RED}[ERROR] {e}{RESET}")
+            if verbosity > 0:
+                printing_queue.put(f"{RED}[ERROR] {e}{RESET}")
+            time.sleep(1)
 
     printing_queue.put(f"{GREEN}[+] Arp poisoning thread is exiting. Restoring default ARP settings...{RESET}")
     try:
