@@ -64,21 +64,21 @@ def initialize_program(interface_pc, mac_address, ip_address, router_ip, verbosi
 
     arp_poisoning_token = start_arp_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
 
-    # sniffer_thread_token = start_sniffer_thread(interface_pc, targeted_ip, router_ip, local_printing_queue,verbosity)
+    sniffer_thread_token = start_sniffer_thread(interface_pc, targeted_ip, router_ip, local_printing_queue,verbosity)
 
-    dns_poisoning_token = start_dns_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
+    # dns_poisoning_token = start_dns_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
 
     http_server_token = start_http_server_thread(interface_pc, local_printing_queue, verbosity)
     #
 
-    mitm_proxy_token = start_mitm_proxy_thread(local_printing_queue, verbosity)
+    # mitm_proxy_token = start_mitm_proxy_thread(local_printing_queue, verbosity)
     # creating list with cancellation tokens
-    # original_tokens_list.append(sniffer_thread_token)
+    original_tokens_list.append(sniffer_thread_token)
     original_tokens_list.append(http_server_token)
     original_tokens_list.append(arp_poisoning_token)
-    original_tokens_list.append(dns_poisoning_token)
+    # original_tokens_list.append(dns_poisoning_token)
     original_tokens_list.append(printing_thread_token)
-    original_tokens_list.append(mitm_proxy_token)
+    # original_tokens_list.append(mitm_proxy_token)
 
     return original_tokens_list
 

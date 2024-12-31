@@ -68,7 +68,7 @@ def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue
 
 def start_arp_poisoning(interface_to_poison, target_ip, router_ip, printing_queue, verbosity):
     cancel_token = threading.Event()
-    if verbosity < 2:
+    if verbosity < 3:
         logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
     arp_poisoning_thread = threading.Thread(target=arp_poisoning_loop, args=(

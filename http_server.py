@@ -6,7 +6,7 @@ from urllib.parse import parse_qsl, urlparse, parse_qs
 
 import json
 
-
+from networking_functions import get_local_ip
 from utils import thread_with_trace
 
 from colorama import init, Fore
@@ -108,10 +108,10 @@ def http_server_start(printing_queue, verbosity):
 
 def http_wpad_giver_server_start(interface, printing_queue, verbosity, cancel_token):
     http_port = 80
-    local_ip = conf.ifaces[interface].ip
+    # local_ip = get_local_ip()
     if verbosity > 0:
         printing_queue.put(f"{GREEN}[+] Starting wpad giver server{RESET}")
-    httpd = HTTPServer((local_ip, http_port), SimpleHTTPRequestHandler)
+    httpd = HTTPServer(('0.0.0.0', http_port), SimpleHTTPRequestHandler)
     httpd.serve_forever()
 
 
