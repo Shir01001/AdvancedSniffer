@@ -4,8 +4,8 @@ Using different techniques to route victim's traffic to attacking machine.
 Working on linux systems.
 ## Installation
 Clone respository  
-```git clone https://github.com/Shir01001/AdvancedSniffer.git```
-Download and extract necessary binaries
+```git clone https://github.com/Shir01001/AdvancedSniffer.git```  
+Download and extract necessary binaries  
 ```./install.sh```
 
 Iptables are needed on system  
@@ -28,14 +28,13 @@ Gui usage:
 ```sudo python3 main.py -g 1```
 
 
-
-
-
 Arguments:  
 -i --interface sets interface to use (default is wlan0)  
 -m --mac-address sets target mac address for arp poisoning  
--a --address sets ip address of target for arp poisoning  
+-t --target_ip sets ip address of target for arp poisoning  
+-r --router_ip sets ip address for network's gateway  
 -v --verbosity adds information to output for debug purposes
+-g --gui when set to 1 enables graphical interface
 
     mitmdump --listen-host local_ip --listen-port 8080 --flow-detail 4 '~bq pass'
 
@@ -53,7 +52,6 @@ Arguments:
 4. Serving wpad file for automatic detection of proxies.
 5. Routing all of traffic 
 
-
 ## Common Issues
 1. Arp problems, check if listening on right interface (default interface is wlan0)
 2. DNS problems, check if given network gateway is correct, if custom dns server is running in network you might have bad luck
@@ -65,16 +63,19 @@ Arguments:
 2 All messages, warnings from libraries, basic summaries of intercepted/sniffed packets
 
 ## Resources used
-Extremely helpful video on which this project's attack chain is based: https://www.youtube.com/watch?v=Oi_kQE1zyPs  
-Thanks for it to: https://www.youtube.com/@hacktheclown
+Extremely helpful video on which this project's attack chain is based:  
+https://www.youtube.com/watch?v=Oi_kQE1zyPs  
+Thanks for it to:  
+https://www.youtube.com/@hacktheclown
 
-For gui using tkinter with Forest-ttk-theme: https://github.com/rdbende/Forest-ttk-theme
+For gui using tkinter with Forest-ttk-theme:  
+https://github.com/rdbende/Forest-ttk-theme
 ## Sources for images
 http server basic templates
-Representation of arp attack:
-https://www.geeksforgeeks.org/what-is-arp-spoofing-arp-poisoning-attack/
-Representation of dns hijacking https://www.riskcrew.com/wp-content/uploads/2021/01/DNS-Hyjacking.jpg
-
+Representation of arp attack:  
+https://www.geeksforgeeks.org/what-is-arp-spoofing-arp-poisoning-attack/  
+Representation of dns hijacking:  
+https://www.riskcrew.com/wp-content/uploads/2021/01/DNS-Hyjacking.jpg
 
 ## Disclaimer
 This software is to be used only for educational purposes.

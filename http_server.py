@@ -104,7 +104,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
         self.server.stop = True
-        print("Stopping server...")
+        # print("Stopping server...")
 
 
 class StoppableHttpServer (HTTPServer):
@@ -119,10 +119,12 @@ def http_server_start(printing_queue, verbosity, cancel_token):
     server_instance.serve_forever()
 
 
-def stop_server():
+def stop_server(printing_queue):
     conn = httplib2.HTTPConnectionWithTimeout("127.0.0.1:80")
     conn.request("QUIT", "/")
     conn.getresponse()
+    printing_queue.put(f"{GREEN}[+] HTTP server stopped{RESET}")
+
 
 def start_http_server_thread(interface, printing_queue, verbosity):
     # http_server_thread = thread_with_trace(target=http_server_start, args=(printing_queue, verbosity))

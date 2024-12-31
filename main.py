@@ -78,14 +78,16 @@ if __name__ == "__main__":
     printing_queue = Queue()
 
     time.sleep(1)
-    printing_thread_token = start_printer_thread(printing_queue)
 
 
     if int(args.gui):
+        printing_thread_token = start_printer_thread(printing_queue)
+
         start_gui(args.interface, args.mac_address, args.target_ip, args.router_ip,
                                          int(args.verbosity),
                                          printing_queue)
     else:
+        printing_thread_token = start_printer_thread(printing_queue)
         tokens_list = initialize_program(args.interface, args.mac_address, args.target_ip, args.router_ip,
                                          int(args.verbosity),
                                          printing_queue)
