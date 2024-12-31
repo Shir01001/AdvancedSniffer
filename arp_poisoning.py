@@ -33,7 +33,6 @@ def spoofing(target, spoofed):
 
 def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue, verbosity, cancel_token):
     if verbosity > 0:
-        printing_queue.put(f"{GREEN}[+] Starting dns poisoning loop{RESET}")
         printing_queue.put(f"{GREEN}[+]Starting spoofing: {target_ip} <- {router_ip}{RESET}")
     while not cancel_token.is_set():
         try:

@@ -2,10 +2,22 @@
 Sniffer capable of mainly on the fly analysis of http/https packets.  
 Using different techniques to route victim's traffic to attacking machine.
 ## Installation
+Clone respository  
+```git clone https://github.com/Shir01001/AdvancedSniffer.git```
+Download and extract necessary binaries
+```./install.sh```
+
 Iptables are needed on system  
 ```pip install -r requirements.txt```  
 
-    sudo apt install mitmproxy
+    sudo apt install iptables
+
+On externally managed systems:  
+```sudo apt install iptables python-pyshark python-argparse python-pyscapy python-colorama```
+
+On victim machine:
+Certificates on mitm.it website  
+```certutil -addstore root mitmproxy-ca-cert.pem```
 
 ## Usage
   
