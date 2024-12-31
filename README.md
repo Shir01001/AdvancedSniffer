@@ -1,6 +1,7 @@
 # AdvancedSniffer
 Sniffer capable of mainly on the fly analysis of http/https packets.  
-Using different techniques to route victim's traffic to attacking machine.
+Using different techniques to route victim's traffic to attacking machine.  
+Working on linux systems.
 ## Installation
 Clone respository  
 ```git clone https://github.com/Shir01001/AdvancedSniffer.git```
@@ -21,8 +22,14 @@ Certificates on mitm.it website
 
 ## Usage
   
-Run as administrator:
-```python3 main.py --interface interface```
+Terminal usage:
+```sudo python3 main.py --interface interface```  
+Gui usage:
+```sudo python3 main.py -g 1```
+
+
+
+
 
 Arguments:  
 -i --interface sets interface to use (default is wlan0)  
