@@ -4,7 +4,6 @@ import sys
 import threading
 
 from colorama import init, Fore
-
 from networking_functions import get_local_ip
 
 init()
@@ -75,3 +74,21 @@ def run_restoring_commands():
 
 if __name__ == "__main__":
     print(get_local_ip())
+
+
+def start_printer_thread(local_printing_queue):
+    cancel_token = threading.Event()
+    printer_thread = threading.Thread(target=printer, args=(local_printing_queue, cancel_token), daemon=True,
+                                      name="Printer")
+    printer_thread.start()
+    return cancel_token
+
+
+def printer(queue, cancel_token):
+    print(f"{GREEN}[+] Printing thread started{RESET}")
+    while not cancel_token.is_set():
+        message = queue.get()
+        if message[:3] == "[+]" or message[:3] == "[-]":
+            print('\n' + str(message) + '\n#>', end='')
+        else:
+            print(message)

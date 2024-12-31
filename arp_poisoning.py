@@ -33,7 +33,6 @@ def spoofing(target, spoofed):
 
 def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue, verbosity, cancel_token):
     if verbosity > 0:
-        printing_queue.put(f"{GREEN}[+] Starting dns poisoning loop{RESET}")
         printing_queue.put(f"{GREEN}[+]Starting spoofing: {target_ip} <- {router_ip}{RESET}")
     while not cancel_token.is_set():
         try:
@@ -48,8 +47,13 @@ def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue
                 printing_queue.put(f'{RED}[?]IP seems down, retrying... {RESET}')
             time.sleep(1)
             continue
+        except IndexError:
+            if verbosity > 0:
+                printing_queue.put(f'{RED}[?] Probably not resolving mac address{RESET}')
         except Exception as e:
-            printing_queue.put(f"{RED}[ERROR] {e}{RESET}")
+            if verbosity > 0:
+                printing_queue.put(f"{RED}[ERROR] {e}{RESET}")
+            time.sleep(1)
 
     printing_queue.put(f"{GREEN}[+] Arp poisoning thread is exiting. Restoring default ARP settings...{RESET}")
     try:
@@ -63,7 +67,7 @@ def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue
 
 def start_arp_poisoning(interface_to_poison, target_ip, router_ip, printing_queue, verbosity):
     cancel_token = threading.Event()
-    if verbosity < 2:
+    if verbosity < 3:
         logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
     arp_poisoning_thread = threading.Thread(target=arp_poisoning_loop, args=(

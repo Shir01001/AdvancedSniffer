@@ -5,8 +5,9 @@ from http.cookies import SimpleCookie
 from urllib.parse import parse_qsl, urlparse, parse_qs
 
 import json
+import httplib2
 
-
+from networking_functions import get_local_ip
 from utils import thread_with_trace
 
 from colorama import init, Fore
@@ -99,27 +100,38 @@ class WebRequestHandler(BaseHTTPRequestHandler):
             }
         )
 
+    def  do_QUIT(self):
+        self.send_response(200)
+        self.end_headers()
+        self.server.stop = True
+        print("Stopping server...")
 
-def http_server_start(printing_queue, verbosity):
+
+class StoppableHttpServer (HTTPServer):
+    def serve_forever (self):
+        self.stop = False
+        while not self.stop:
+            self.handle_request()
+
+def http_server_start(printing_queue, verbosity, cancel_token):
     printing_queue.put(f"\n{GREEN}[+] HTTP server started{RESET}")
-    server_instance = HTTPServer(('', 80), WebRequestHandler)
+    server_instance = StoppableHttpServer(('0.0.0.0', 80), WebRequestHandler)
     server_instance.serve_forever()
 
 
-def http_wpad_giver_server_start(interface, printing_queue, verbosity, cancel_token):
-    http_port = 80
-    local_ip = conf.ifaces[interface].ip
-    if verbosity > 0:
-        printing_queue.put(f"{GREEN}[+] Starting wpad giver server{RESET}")
-    httpd = HTTPServer((local_ip, http_port), SimpleHTTPRequestHandler)
-    httpd.serve_forever()
-
-
+def stop_server():
+    conn = httplib2.HTTPConnectionWithTimeout("127.0.0.1:80")
+    conn.request("QUIT", "/")
+    conn.getresponse()
 
 def start_http_server_thread(interface, printing_queue, verbosity):
     # http_server_thread = thread_with_trace(target=http_server_start, args=(printing_queue, verbosity))
     cancel_token = threading.Event()
-    http_server_thread = thread_with_trace(target=http_wpad_giver_server_start, args=(interface, printing_queue, verbosity, cancel_token))
+
+    # http_port = 80
+    # httpd = HTTPServer(('0.0.0.0', http_port), SimpleHTTPRequestHandler)
+
+    http_server_thread = thread_with_trace(target=http_server_start, args=(printing_queue, verbosity, cancel_token))
     http_server_thread.start()
     return cancel_token
 
