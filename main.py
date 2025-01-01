@@ -48,7 +48,6 @@ def initialize_program(interface_pc, mac_address, ip_address, router_ip, verbosi
     dns_poisoning_token = start_dns_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
 
     http_server_token = start_http_server_thread(interface_pc, local_printing_queue, verbosity)
-    #
 
     mitm_proxy_token = start_mitm_proxy_thread(local_printing_queue, verbosity)
     # creating list with cancellation tokens

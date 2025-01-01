@@ -1,11 +1,9 @@
 import tkinter as tk
-from tkinter import ttk, Label, Entry
+from tkinter import ttk, Label
 
 from pandas.core.dtypes.inference import is_integer
 
 from arp_poisoning import start_arp_poisoning
-# from http_server import start_http_server_thread
-# from packet_analysis import start_sniffer_thread
 from dns_poisoning import start_dns_poisoning
 from http_server import start_http_server_thread, stop_server
 from mitm_proxy import start_mitm_proxy_thread

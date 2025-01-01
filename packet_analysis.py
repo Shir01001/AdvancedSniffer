@@ -6,10 +6,6 @@ from scapy.all import *
 from scapy.layers.http import HTTPRequest
 from scapy.layers.dns import DNSRR, DNS, IP, UDP
 
-
-# from dns_poisoning import process_dns_packet
-# from utils import thread_with_trace
-
 from colorama import init, Fore
 
 init()
@@ -81,10 +77,6 @@ def packet_handler(packet_to_process, target, router_ip, printing_queue, verbosi
         # print(packet_to_process)
         process_http_packet(packet_to_process, printing_queue, verbosity)
 
-    # if packet_to_process.haslayer(DNS) and packet_to_process[DNS].qr == 0:
-    #     print(packet_to_process)
-    # process_dns_packet(packet_to_process, target,router_ip)
-
 
 def sniffer_loop_scapy(interface_to_capture_packets, target, router_ip, printing_queue, verbosity, cancel_token):
     if verbosity > 0:
@@ -106,8 +98,3 @@ def start_sniffer_thread(interface_to_capture_packets, target, router_ip, printi
     sniffer_thread.start()
     return cancel_token
 
-# if __name__ == "__main__":
-# sniffer_loop_scapy("wlan0", 1)
-# for testing purposes
-# sniffer_loop("wlan0",1)
-# start_sniffer_thread("wlan0",1)

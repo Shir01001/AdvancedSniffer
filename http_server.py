@@ -7,12 +7,8 @@ from urllib.parse import parse_qsl, urlparse, parse_qs
 import json
 import httplib2
 
-from networking_functions import get_local_ip
 from utils import thread_with_trace
-
 from colorama import init, Fore
-
-from scapy.all import conf
 
 init()
 GREEN = Fore.GREEN
@@ -104,7 +100,6 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
         self.server.stop = True
-        # print("Stopping server...")
 
 
 class StoppableHttpServer (HTTPServer):
@@ -127,15 +122,8 @@ def stop_server(printing_queue):
 
 
 def start_http_server_thread(interface, printing_queue, verbosity):
-    # http_server_thread = thread_with_trace(target=http_server_start, args=(printing_queue, verbosity))
     cancel_token = threading.Event()
-
-    # http_port = 80
-    # httpd = HTTPServer(('0.0.0.0', http_port), SimpleHTTPRequestHandler)
-
     http_server_thread = thread_with_trace(target=http_server_start, args=(printing_queue, verbosity, cancel_token))
     http_server_thread.start()
     return cancel_token
 
-# if __name__ == "__main__":
-#     http_server_start()
