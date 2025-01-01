@@ -84,10 +84,20 @@ def start_printer_thread(local_printing_queue):
     return cancel_token
 
 
-def printer(queue, cancel_token):
+tkinter_text_for_printer = None
+
+def set_text_for_printer(text_widget):
+    global tkinter_text_for_printer
+    tkinter_text_for_printer = text_widget
+
+def printer(queue,cancel_token):
     print(f"{GREEN}[+] Printing thread started{RESET}")
     while not cancel_token.is_set():
         message = queue.get()
+
+        if tkinter_text_for_printer is not None:
+            tkinter_text_for_printer.insert("1.0", message[6:-5]+'\n')
+
         if message[:3] == "[+]" or message[:3] == "[-]":
             print('\n' + str(message) + '\n#>', end='')
         else:

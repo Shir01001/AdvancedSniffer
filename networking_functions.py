@@ -3,7 +3,6 @@ import socket
 import psutil
 import ipaddress
 
-import scapy.all as scapy
 from scapy import all as scapy
 
 from colorama import init, Fore

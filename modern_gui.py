@@ -1,15 +1,15 @@
 import tkinter as tk
-from tkinter import ttk, Label, Entry
+from tkinter import ttk, Label
 
 from pandas.core.dtypes.inference import is_integer
 
 from arp_poisoning import start_arp_poisoning
-# from http_server import start_http_server_thread
-# from packet_analysis import start_sniffer_thread
 from dns_poisoning import start_dns_poisoning
 from http_server import start_http_server_thread, stop_server
 from mitm_proxy import start_mitm_proxy_thread
 from packet_analysis import start_sniffer_thread
+
+from utils import set_text_for_printer
 
 tokens_dictionary = {"arp": 0, "sniffer": 0, "dns": 0, "http": 0, "proxy": 0}
 
@@ -29,7 +29,7 @@ def gui_callback(option_for_action, type_of_action, target_ip_entry, router_ip_e
 
     match option_for_action:
         case "arp":
-            if type_of_action:
+            if type_of_action and tokens_dictionary["arp"] == 0:
                 tokens_dictionary["arp"] = start_arp_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
                 tokens_dictionary["sniffer"] = start_sniffer_thread(interface_pc, targeted_ip, router_ip, local_printing_queue,verbosity)
             else:
@@ -41,7 +41,7 @@ def gui_callback(option_for_action, type_of_action, target_ip_entry, router_ip_e
                     tokens_dictionary["arp"] = 0
                     tokens_dictionary["sniffer"] = 0
         case "dns":
-            if type_of_action:
+            if type_of_action and tokens_dictionary["dns"] == 0:
                 tokens_dictionary["dns"] =  start_dns_poisoning(interface_pc, targeted_ip, router_ip, local_printing_queue, verbosity)
             else:
                 dns_token = tokens_dictionary["dns"]
@@ -49,15 +49,15 @@ def gui_callback(option_for_action, type_of_action, target_ip_entry, router_ip_e
                     dns_token.set()
                     tokens_dictionary["dns"] = 0
         case "http":
-            if type_of_action:
+            if type_of_action and tokens_dictionary["http"] == 0:
                 tokens_dictionary["http"] = start_http_server_thread(interface_pc, local_printing_queue, verbosity)
             else:
                 http_token = tokens_dictionary["http"]
                 if not is_integer(http_token):
-                    stop_server()
+                    stop_server(local_printing_queue)
                     tokens_dictionary["http"] = 0
         case "proxy":
-            if type_of_action:
+            if type_of_action and tokens_dictionary["dns"] == 0:
                 tokens_dictionary["proxy"] = start_mitm_proxy_thread(local_printing_queue, verbosity)
             else:
                 proxy_token = tokens_dictionary["proxy"]
@@ -134,6 +134,8 @@ def start_gui(interface_pc_, mac_address_, ip_address_, router_ip_, verbosity_, 
     stop_button_arp = ttk.Button(root, text="stop", command=lambda: gui_callback("proxy", 0, target_ip_entry, gateway_ip_entry)).grid(row=6, column=3,
                                                                                                    padx=5, pady=5)
 
-    logging_input_field = tk.Text(width=50).grid(row=7, column=0, rowspan=1, columnspan=4, padx=5, pady=5)
+    logging_input_field = tk.Text(width=50)
+    set_text_for_printer(logging_input_field)
+    logging_input_field.grid(row=7, column=0, rowspan=1, columnspan=4, padx=5, pady=5)
 
     root.mainloop()

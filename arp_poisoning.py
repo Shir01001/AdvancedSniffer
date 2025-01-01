@@ -3,8 +3,6 @@ import threading
 import time
 
 import scapy.all as scapy
-from ldap3 import RESTARTABLE
-from scapy.layers.l2 import arp_mitm
 from networking_functions import get_mac
 
 from colorama import init, Fore
@@ -36,7 +34,6 @@ def arp_poisoning_loop(interface_to_poison, target_ip, router_ip, printing_queue
         printing_queue.put(f"{GREEN}[+]Starting spoofing: {target_ip} <- {router_ip}{RESET}")
     while not cancel_token.is_set():
         try:
-            # arp_mitm(router_ip, target_ip, iface=interface_to_poison)
             spoofing(target_ip, router_ip)
             spoofing(router_ip, target_ip)
 
@@ -75,5 +72,3 @@ def start_arp_poisoning(interface_to_poison, target_ip, router_ip, printing_queu
     arp_poisoning_thread.start()
     return cancel_token
 
-# if __name__ == "__main__":
-# arp_poisoning_loop("wlan0", )
