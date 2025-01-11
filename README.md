@@ -55,7 +55,7 @@ Arguments:
 ## Common Issues
 1. Arp problems, check if listening on right interface (default interface is wlan0)
 2. DNS problems, check if given network gateway is correct, if custom dns server is running in network you might have bad luck
-3. Serving wpad file problems, check if victim's system has automatic proxy detection enabled (should be on by default)
+3. Serving wpad file problems, check if victim's system has automatic proxy detection enabled (should be on by default) (Couldn't test this one)
 
 ## Verbosity Levels
 0 No messages  
@@ -76,6 +76,10 @@ Representation of arp attack:
 https://www.geeksforgeeks.org/what-is-arp-spoofing-arp-poisoning-attack/  
 Representation of dns hijacking:  
 https://www.riskcrew.com/wp-content/uploads/2021/01/DNS-Hyjacking.jpg
+
+## Demo
+
+[demo1.mp4](assets/readme_files/readme_videos/demo1.mp4)
 
 ## Disclaimer
 This software is to be used only for educational purposes.
