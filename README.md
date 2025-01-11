@@ -79,7 +79,7 @@ https://www.riskcrew.com/wp-content/uploads/2021/01/DNS-Hyjacking.jpg
 
 ## Demo
 
-[demo1.mp4](assets/readme_files/readme_videos/demo1.mp4)
+[demo1.mp4](https://github.com/Shir01001/AdvancedSniffer/blob/readme_and_final_changes/assets/readme_files/readme_videos/demo1.mp4)
 
 ## Disclaimer
 This software is to be used only for educational purposes.
